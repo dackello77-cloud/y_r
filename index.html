@@ -192,6 +192,22 @@ async function sendTelegram(payload){
 
 let user=null,requests=[],allUsers=[],companies=[],assignments={},selectedId=null,activeId=localStorage.getItem('activeRequestId'),timerInt=null,startTime=null,pendingBol=null,nextPanel=null,previewImages=[],previewIndex=0,currentZoom=1,currentPreviewImage=null,selectedAssignAdmin=null,editMode=null,editTarget=null,bolStream=null;
 let knownNewRequestIds=new Set(),requestsSnapshotReady=false,soundUnlocked=false,bolSending=false;
+
+function restoreSavedUser(){
+  try{
+    const saved = localStorage.getItem('user');
+    if(saved){
+      user = JSON.parse(saved);
+      if(user && user.username){
+        return true;
+      }
+    }
+  }catch(e){
+    console.warn('restore user failed', e);
+  }
+  return false;
+}
+
 $('loginBtn').onclick=login;$('logoutBtn').onclick=logout;$('shiftBtn').onclick=()=>checkBolThen(openShift);$('hoursBtn').onclick=()=>checkBolThen(openHours);$('backShift').onclick=showHome;$('backHours').onclick=showHome;$('backBol').onclick=showHome;const continueBtn=$('continueAfterBol');if(continueBtn)continueBtn.onclick=()=>{pendingBol=null;if(nextPanel)nextPanel()};$('sendBolBtn').onclick=sendBolAction;
 $('loginPassword').onkeydown=e=>{if(e.key==='Enter')login()};$('loginUsername').onkeydown=e=>{if(e.key==='Enter')login()};$('closeModalBtn').onclick=closeImagePreview;$('zoomInBtn').onclick=zoomInImage;$('zoomOutBtn').onclick=zoomOutImage;$('prevImgBtn').onclick=prevImage;$('nextImgBtn').onclick=nextImage;$('requestSearch').oninput=renderAdmin;$('editCancel').onclick=closeEditModal;$('editSave').onclick=saveEditModal;
 async function ensureTestCompany(){const c=await getDoc(doc(db,'companies_yr','test_company'));if(!c.exists())await setDoc(doc(db,'companies_yr','test_company'),{companyId:'test_company',name:'Test Company',superAdminUsername:'super',superAdminName:'Dalibor',createdAt:serverTimestamp()});}
@@ -473,7 +489,8 @@ async function usernameExists(username){const snap=await getDoc(doc(db,'users_yr
 
 
 
-<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR ALL COLLECTIONS FIX v6</div>
+
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR LOGIN CUSTOMER FIX v7</div>
 </body>
 
 </html>
