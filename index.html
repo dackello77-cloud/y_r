@@ -67,6 +67,19 @@ overflow:hidden!important;
   cursor:not-allowed;
 }
 
+
+#sendBolBtn{
+  display:none;
+  border:none;
+}
+#sendBolBtn.sending{
+  opacity:.45;
+  cursor:not-allowed;
+}
+#uploadBolLabel.hiddenAfterSelect{
+  display:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -77,11 +90,12 @@ overflow:hidden!important;
 <section class="panel" id="hoursPanel"><div class="panelTop"><button class="btn gray" id="backHours">←</button></div><div class="grid" id="hoursGrid"></div></section>
 
 
+
 <section class="panel bolNotice" id="bolPanel">
   <div class="bolCameraBox">
 
-    <label for="bolFile" class="uploadBolBtn">
-      UPLOAD BOL
+    <label for="bolFile" class="uploadBolBtn" id="uploadBolLabel">
+      UPLOAD
     </label>
 
     <input
@@ -95,12 +109,13 @@ overflow:hidden!important;
 
     <div id="bolFileName" class="bolFileName"></div>
 
-    <button class="btn blue sendBolBtn" id="sendBolBtn">
+    <button class="uploadBolBtn sendBolBtn" id="sendBolBtn" type="button">
       SEND
     </button>
 
   </div>
 </section>
+
 
 
 <section class="waiting" id="waiting"><div class="timer" id="timer">00:00:00</div></section>
@@ -180,6 +195,7 @@ function playNewRequestSound(){
 }
 function checkBolThen(fn){if(user?.bolRequired){showBolCapturePanel()}else fn()}
 
+
 function showBolCapturePanel(){
   hideAll();
   pendingBol = null;
@@ -187,6 +203,12 @@ function showBolCapturePanel(){
 
   const input = $('bolFile');
   if(input) input.value = '';
+
+  const uploadLabel = $('uploadBolLabel');
+  if(uploadLabel){
+    uploadLabel.classList.remove('hiddenAfterSelect');
+    uploadLabel.innerText = 'UPLOAD';
+  }
 
   const preview = $('bolPreview');
   if(preview){
@@ -221,6 +243,11 @@ function readBol(e){
   reader.onload = function(ev){
     pendingBol = ev.target.result;
 
+    const uploadLabel = $('uploadBolLabel');
+    if(uploadLabel){
+      uploadLabel.classList.add('hiddenAfterSelect');
+    }
+
     const preview = $('bolPreview');
     const fileName = $('bolFileName');
 
@@ -230,7 +257,7 @@ function readBol(e){
         preview.style.display = 'block';
       }
       if(fileName){
-        fileName.innerText = file.name || 'BOL image selected';
+        fileName.innerText = file.name || 'Image selected';
         fileName.style.display = 'block';
       }
     }else{
@@ -239,14 +266,14 @@ function readBol(e){
         preview.style.display = 'none';
       }
       if(fileName){
-        fileName.innerText = file.name || 'BOL file selected';
+        fileName.innerText = file.name || 'File selected';
         fileName.style.display = 'block';
       }
     }
 
     const send = $('sendBolBtn');
     if(send){
-      send.style.display = 'block';
+      send.style.display = 'flex';
       send.disabled = false;
       send.classList.remove('sending');
       send.innerText = 'SEND';
@@ -374,7 +401,7 @@ async function usernameExists(username){const snap=await getDoc(doc(db,'users',u
 
 
 <div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">
-YR SIMPLE BUTTON v1
+YR UPLOAD TO SEND v2
 </div>
 </body>
 
