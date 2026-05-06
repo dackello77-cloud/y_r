@@ -10,13 +10,15 @@
 .logoLogin{width:92px;height:92px;border-radius:22px;object-fit:cover;display:block;margin:0 auto 18px auto}.bolCameraBox{width:min(720px,94vw);background:#111827;border:2px solid #38bdf8;border-radius:22px;padding:18px;box-shadow:0 0 28px rgba(56,189,248,.25)}.bolCameraTitle{display:none}.bolPreviewBig{max-width:100%;max-height:62vh;border-radius:14px;border:1px solid #334155;margin:0 0 14px 0;display:none}.Label{display:none}.sendBolBtn{display:none;width:100%;font-size:22px;margin-top:8px;padding:16px 18px}.sendBolBtn.sending{opacity:.45;cursor:not-allowed}.hiddenBolText{display:none!important}.hiddenBolText.hidden{display:none!important}
 @media(max-width:850px){.header{flex-direction:column;align-items:flex-start}.home{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.choice{font-size:30px}.list{max-height:none}}
 
-.hiddenBolText,.hiddenBolBtn,[for="bolFile"],[for="bolCameraInput"]{
+
+.hiddenBolText,.hiddenBolBtn,[for="bolCameraInput"]{
 display:none!important;
 visibility:hidden!important;
 opacity:0!important;
 height:0!important;
 overflow:hidden!important;
 }
+
 
 
 
@@ -74,23 +76,32 @@ overflow:hidden!important;
 <section class="panel" id="shiftPanel"><div class="panelTop"><button class="btn gray" id="backShift">←</button></div><div class="grid" id="shiftGrid"></div></section>
 <section class="panel" id="hoursPanel"><div class="panelTop"><button class="btn gray" id="backHours">←</button></div><div class="grid" id="hoursGrid"></div></section>
 
+
 <section class="panel bolNotice" id="bolPanel">
   <div class="bolCameraBox">
-    <label class="uploadBolBtn" for="bolFile">UPLOAD BOL</label>
+
+    <label for="bolFile" class="uploadBolBtn">
+      UPLOAD BOL
+    </label>
 
     <input
       id="bolFile"
       type="file"
-      accept="image/*,application/pdf"
-      style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;"
+      accept="image/*,.pdf"
+      style="display:none"
     >
 
     <img id="bolPreview" class="bolPreviewBig">
+
     <div id="bolFileName" class="bolFileName"></div>
 
-    <button class="btn blue sendBolBtn" id="sendBolBtn">SEND</button>
+    <button class="btn blue sendBolBtn" id="sendBolBtn">
+      SEND
+    </button>
+
   </div>
 </section>
+
 
 <section class="waiting" id="waiting"><div class="timer" id="timer">00:00:00</div></section>
 <section class="working" id="working"><div class="timer" id="timerBlue">00:00:00</div></section>
@@ -360,6 +371,11 @@ function getRequestImages(r){const imgs=[];if(r?.bolImage)imgs.push(r.bolImage);
 async function usernameExists(username){const snap=await getDoc(doc(db,'users',username));return snap.exists()}function getAssignedCustomers(adminUsername,companyId){const id=companyId+'_'+adminUsername;if(Array.isArray(assignments[id]))return assignments[id];const admin=allUsers.find(u=>userKey(u)===adminUsername&&companyOf(u)===companyId);return Array.isArray(admin?.assignedCustomers)?admin.assignedCustomers:[]}function slug(s){return String(s||'company').toLowerCase().trim().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'company'}function getDate(v){if(v?.toDate)return v.toDate();if(typeof v==='number')return new Date(v);return new Date(v||Date.now())}function formatDate(v){if(!v)return'-';return getDate(v).toLocaleString([],{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}function esc(t){return String(t||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function escAttr(t){return esc(t)}
 </script>
 
-<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR UPLOAD BOL SIMPLE v1</div>
+
+
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">
+YR SIMPLE BUTTON v1
+</div>
 </body>
+
 </html>
