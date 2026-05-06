@@ -9,6 +9,34 @@
 
 .logoLogin{width:92px;height:92px;border-radius:22px;object-fit:cover;display:block;margin:0 auto 18px auto}.bolCameraBox{width:min(720px,94vw);background:#111827;border:2px solid #38bdf8;border-radius:22px;padding:18px;box-shadow:0 0 28px rgba(56,189,248,.25)}.bolCameraTitle{display:none}.bolPreviewBig{max-width:100%;max-height:62vh;border-radius:14px;border:1px solid #334155;margin:0 0 14px 0;display:none}.takePhotoLabel{display:none}.hiddenFile{display:none}.sendBolBtn{display:none;width:100%;font-size:22px;margin-top:8px;padding:16px 18px}.sendBolBtn.sending{opacity:.45;cursor:not-allowed}
 @media(max-width:850px){.header{flex-direction:column;align-items:flex-start}.home{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.choice{font-size:30px}.list{max-height:none}}
+
+.uploadBolBtn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px 18px;
+  border-radius:18px;
+  background:#facc15;
+  color:#111827;
+  font-size:30px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-bottom:16px;
+  text-align:center;
+  border:none;
+}
+#sendBolBtn{
+  display:none;
+}
+#sendBolBtn.sending{
+  opacity:.45;
+  cursor:not-allowed;
+}
+#uploadBolBtn.hiddenAfterSelect{
+  display:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -17,7 +45,35 @@
 <section class="home" id="home"><div class="big shift" id="shiftBtn"></div><div class="big hours" id="hoursBtn"></div></section>
 <section class="panel" id="shiftPanel"><div class="panelTop"><button class="btn gray" id="backShift">←</button></div><div class="grid" id="shiftGrid"></div></section>
 <section class="panel" id="hoursPanel"><div class="panelTop"><button class="btn gray" id="backHours">←</button></div><div class="grid" id="hoursGrid"></div></section>
-<section class="panel bolNotice" id="bolPanel"><div class="panelTop" style="position:absolute;top:85px;left:20px"><button class="btn gray" id="backBol">←</button></div><div class="bolCameraBox"><input class="hiddenFile" id="bolFile" type="file" accept="image/*" capture="environment"><img id="bolPreview" class="bolPreviewBig"><button class="btn blue sendBolBtn" id="sendBolBtn">Send</button></div></section>
+
+<section class="panel bolNotice" id="bolPanel">
+  <div class="panelTop" style="position:absolute;top:85px;left:20px">
+    <button class="btn gray" id="backBol">←</button>
+  </div>
+
+  <div class="bolCameraBox">
+
+    <button class="uploadBolBtn" id="uploadBolBtn" type="button">
+      UPLOAD
+    </button>
+
+    <input
+      class="hiddenFile"
+      id="bolFile"
+      type="file"
+      accept="image/*,.pdf"
+      style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;"
+    >
+
+    <img id="bolPreview" class="bolPreviewBig">
+
+    <button class="uploadBolBtn sendBolBtn" id="sendBolBtn" type="button">
+      SEND
+    </button>
+
+  </div>
+</section>
+
 <section class="waiting" id="waiting"><div class="timer" id="timer">00:00:00</div></section>
 <section class="working" id="working"><div class="timer" id="timerBlue">00:00:00</div></section>
 <section class="admin" id="admin"><div class="layout"><div class="box"><div class="boxHead"><h2>Requests</h2><span id="count">0</span></div><div style="padding:12px;border-bottom:1px solid #1f2937"><input class="input" id="requestSearch" placeholder="Search customer..."></div><div class="list" id="requestList"></div></div><div class="box"><div class="boxHead"><h2>Details</h2><span id="roleBadge"></span></div><div class="body" id="details">Select request.</div></div></div></section>
@@ -92,10 +148,129 @@ function playNewRequestSound(){
   }catch(e){}
 }
 function checkBolThen(fn){if(user?.bolRequired){showBolCapturePanel()}else fn()}
-function showBolCapturePanel(){hideAll();pendingBol=null;nextPanel=null;bolSending=false;const input=$('bolFile');if(input)input.value='';const preview=$('bolPreview');if(preview){preview.src='';preview.style.display='none'}const send=$('sendBolBtn');if(send){send.style.display='none';send.disabled=false;send.classList.remove('sending')}$('bolPanel').style.display='flex';setTimeout(()=>{const f=$('bolFile');if(f)f.click()},250)}
-function readBol(e){const file=e.target.files[0];if(!file)return;bolSending=false;const send=$('sendBolBtn');if(send){send.disabled=false;send.classList.remove('sending')}const reader=new FileReader();reader.onload=event=>{const img=new Image();img.onload=()=>{let max=900;let quality=0.68;let pending='';for(let attempt=0;attempt<8;attempt++){let w=img.width,h=img.height;if(w>h&&w>max){h=Math.round(h*max/w);w=max}else if(h>max){w=Math.round(w*max/h);h=max}const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(img,0,0,w,h);pending=canvas.toDataURL('image/jpeg',quality);if(pending.length<950000)break;if(quality>0.45)quality-=0.08;else max-=100;if(max<500)break}pendingBol=pending;$('bolPreview').src=pendingBol;$('bolPreview').style.display='block';$('sendBolBtn').style.display='block'};img.src=event.target.result};reader.readAsDataURL(file)}
-async function sendTelegram(payload){try{await fetch(TELEGRAM_WEBAPP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})}catch(e){console.log('Telegram send error',e)}}
-async function sendBolAction(){if(bolSending)return;try{if(!pendingBol){return}bolSending=true;const send=$('sendBolBtn');if(send){send.disabled=true;send.classList.add('sending')}const payload={action:'bol_photo',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),image:pendingBol,time:new Date().toLocaleString()};await sendTelegram(payload);const ref=await addDoc(collection(db,'requests'),{companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type:'BOL',value:'PHOTO',status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolTelegram:true,messages:[{sender:user.name||user.username,text:'BOL photo sent to Telegram.',createdAt:Date.now()}]});await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user));setTimeout(()=>updateDoc(doc(db,'requests',ref.id),{status:'DONE',doneByName:'System',doneAt:serverTimestamp(),messages:arrayUnion({sender:'System',text:'BOL action auto closed.',createdAt:Date.now()})}).catch(()=>{}),5000);pendingBol=null;showHome()}catch(err){bolSending=false;const send=$('sendBolBtn');if(send){send.disabled=false;send.classList.remove('sending')}alert('Greška kod slanja BOL-a: '+err.message)}}
+
+function showBolCapturePanel(){
+  hideAll();
+  pendingBol=null;
+  nextPanel=null;
+  bolSending=false;
+
+  const input=$('bolFile');
+  if(input){
+    input.value='';
+    input.onchange=readBol;
+  }
+
+  const preview=$('bolPreview');
+  if(preview){
+    preview.src='';
+    preview.style.display='none';
+  }
+
+  const upload=$('uploadBolBtn');
+  if(upload){
+    upload.style.display='flex';
+    upload.classList.remove('hiddenAfterSelect');
+    upload.innerText='UPLOAD';
+    upload.onclick=()=>{
+      const f=$('bolFile');
+      if(f)f.click();
+    };
+  }
+
+  const send=$('sendBolBtn');
+  if(send){
+    send.style.display='none';
+    send.disabled=false;
+    send.classList.remove('sending');
+    send.innerText='SEND';
+    send.onclick=sendBolAction;
+  }
+
+  $('bolPanel').style.display='flex';
+}
+
+function readBol(e){
+  const file=e.target.files[0];
+  if(!file)return;
+
+  bolSending=false;
+
+  const send=$('sendBolBtn');
+  if(send){
+    send.disabled=false;
+    send.classList.remove('sending');
+    send.innerText='SEND';
+  }
+
+  const reader=new FileReader();
+
+  reader.onload=event=>{
+    const img=new Image();
+
+    img.onload=()=>{
+      let max=900;
+      let quality=0.68;
+      let pending='';
+
+      for(let attempt=0;attempt<8;attempt++){
+        let w=img.width,h=img.height;
+
+        if(w>h&&w>max){
+          h=Math.round(h*max/w);
+          w=max;
+        }else if(h>max){
+          w=Math.round(w*max/h);
+          h=max;
+        }
+
+        const canvas=document.createElement('canvas');
+        canvas.width=w;
+        canvas.height=h;
+
+        const ctx=canvas.getContext('2d');
+        ctx.imageSmoothingEnabled=true;
+        ctx.imageSmoothingQuality='high';
+        ctx.drawImage(img,0,0,w,h);
+
+        pending=canvas.toDataURL('image/jpeg',quality);
+
+        if(pending.length<950000)break;
+        if(quality>0.45)quality-=0.08;
+        else max-=100;
+        if(max<500)break;
+      }
+
+      pendingBol=pending;
+
+      const preview=$('bolPreview');
+      if(preview){
+        preview.src=pendingBol;
+        preview.style.display='block';
+      }
+
+      const upload=$('uploadBolBtn');
+      if(upload){
+        upload.classList.add('hiddenAfterSelect');
+        upload.style.display='none';
+      }
+
+      const sendBtn=$('sendBolBtn');
+      if(sendBtn){
+        sendBtn.style.display='flex';
+        sendBtn.disabled=false;
+        sendBtn.classList.remove('sending');
+        sendBtn.innerText='SEND';
+        sendBtn.onclick=sendBolAction;
+      }
+    };
+
+    img.src=event.target.result;
+  };
+
+  reader.readAsDataURL(file);
+}
+async function sendBolAction(){if(bolSending)return;try{if(!pendingBol){return}bolSending=true;const send=$('sendBolBtn');if(send){send.disabled=true;send.classList.add('sending');send.innerText='SENDING...'}const payload={action:'bol_photo',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),image:pendingBol,time:new Date().toLocaleString()};await sendTelegram(payload);const ref=await addDoc(collection(db,'requests'),{companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type:'BOL',value:'PHOTO',status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolTelegram:true,messages:[{sender:user.name||user.username,text:'BOL photo sent to Telegram.',createdAt:Date.now()}]});await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user));setTimeout(()=>updateDoc(doc(db,'requests',ref.id),{status:'DONE',doneByName:'System',doneAt:serverTimestamp(),messages:arrayUnion({sender:'System',text:'BOL action auto closed.',createdAt:Date.now()})}).catch(()=>{}),5000);pendingBol=null;showHome()}catch(err){bolSending=false;const send=$('sendBolBtn');if(send){send.disabled=false;send.classList.remove('sending');send.innerText='SEND'}alert('Greška kod slanja BOL-a: '+err.message)}}
 function openShift(){hideAll();const grid=$('shiftGrid');grid.innerHTML='';grid.appendChild(choice('N','shift',()=>sendRequest('SHIFT','NOW')));const now=new Date();now.setMinutes(0,0,0);now.setHours(now.getHours()+1);for(let i=0;i<9;i++){const d=new Date(now.getTime()+i*3600000);let h=d.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;const label=h+ap;grid.appendChild(choice(label,'shift',()=>sendRequest('SHIFT',label)))}$('shiftPanel').style.display='block'}function openHours(){hideAll();const grid=$('hoursGrid');grid.innerHTML='';grid.appendChild(choice('B','hours',()=>sendRequest('HOURS','BREAK')));for(let i=1;i<=7;i++){const label=i+'+';grid.appendChild(choice(label,'hours',()=>sendRequest('HOURS',label)))}$('hoursPanel').style.display='block'}function choice(text,cls,fn){const b=document.createElement('button');b.className='choice '+cls;b.innerText=text;b.onclick=fn;return b}
 async function sendRequest(type,value){try{const existing=getCustomerTicket();const bolNotice=user?.bolRequired;const bolText=bolNotice?' BOL requested - customer sent BOL to Telegram.':'';const base={companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type,value,status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolSentByEmail:!!bolNotice};
 await sendTelegram({action:'new_request',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),type,value,time:new Date().toLocaleString()});
@@ -119,5 +294,6 @@ function closeEditModal(){$('editModal').style.display='none';editMode=null;edit
 function getRequestImages(r){const imgs=[];if(r?.bolImage)imgs.push(r.bolImage);(Array.isArray(r?.messages)?r.messages:[]).forEach(m=>{if(m.bolImage&&!imgs.includes(m.bolImage))imgs.push(m.bolImage)});return imgs}function getImageIndex(r,src){const arr=getRequestImages(r);const i=arr.indexOf(src);return i>=0?i:0}function openImagePreviewByIndex(index){const r=requests.find(x=>x.id===selectedId);previewImages=r?getRequestImages(r):[];if(!previewImages.length)return;previewIndex=Math.max(0,Math.min(index,previewImages.length-1));openImagePreview(previewImages[previewIndex])}function resetImageView(){const img=$('modalImage');currentZoom=1;img.style.transform='scale(1)';img.style.width='auto';img.style.maxWidth='92vw';img.style.maxHeight='82vh';const area=document.querySelector('.imageArea');if(area){area.scrollTop=0;area.scrollLeft=0}}function openImagePreview(src){currentPreviewImage=src;const img=$('modalImage');img.onload=()=>{resetImageView()};img.src=src;resetImageView();$('imageModal').style.display='flex';updateImageCounter()}function closeImagePreview(){$('imageModal').style.display='none';$('modalImage').src=''}function zoomInImage(){currentZoom=Math.min(currentZoom+0.2,3);$('modalImage').style.transform='scale('+currentZoom+')';const area=document.querySelector('.imageArea');if(area)area.scrollTop=0}function zoomOutImage(){currentZoom=Math.max(currentZoom-0.2,0.5);$('modalImage').style.transform='scale('+currentZoom+')';const area=document.querySelector('.imageArea');if(area)area.scrollTop=0}function prevImage(){if(!previewImages.length)return;previewIndex=previewIndex<=0?previewImages.length-1:previewIndex-1;openImagePreview(previewImages[previewIndex])}function nextImage(){if(!previewImages.length)return;previewIndex=previewIndex>=previewImages.length-1?0:previewIndex+1;openImagePreview(previewImages[previewIndex])}function updateImageCounter(){$('imageCounter').innerText=previewImages.length?(previewIndex+1)+' / '+previewImages.length:''}
 async function usernameExists(username){const snap=await getDoc(doc(db,'users',username));return snap.exists()}function getAssignedCustomers(adminUsername,companyId){const id=companyId+'_'+adminUsername;if(Array.isArray(assignments[id]))return assignments[id];const admin=allUsers.find(u=>userKey(u)===adminUsername&&companyOf(u)===companyId);return Array.isArray(admin?.assignedCustomers)?admin.assignedCustomers:[]}function slug(s){return String(s||'company').toLowerCase().trim().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'company'}function getDate(v){if(v?.toDate)return v.toDate();if(typeof v==='number')return new Date(v);return new Date(v||Date.now())}function formatDate(v){if(!v)return'-';return getDate(v).toLocaleString([],{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}function esc(t){return String(t||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function escAttr(t){return esc(t)}
 </script>
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR ONLY UPLOAD SEND v11</div>
 </body>
 </html>
