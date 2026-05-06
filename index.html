@@ -80,6 +80,42 @@ overflow:hidden!important;
   display:none!important;
 }
 
+
+.uploadBolBtn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px 18px;
+  border-radius:18px;
+  background:#facc15;
+  color:#111827;
+  font-size:30px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-bottom:16px;
+  text-align:center;
+  border:none;
+}
+#sendBolBtn{
+  display:none;
+}
+#sendBolBtn.sending{
+  opacity:.45;
+  cursor:not-allowed;
+}
+#uploadBolBtn.hiddenAfterSelect{
+  display:none!important;
+}
+.bolFileName{
+  display:none;
+  color:#cbd5e1;
+  font-size:16px;
+  margin:10px 0 14px 0;
+  word-break:break-word;
+  text-align:center;
+}
+
 </style>
 </head>
 <body>
@@ -91,18 +127,19 @@ overflow:hidden!important;
 
 
 
+
 <section class="panel bolNotice" id="bolPanel">
   <div class="bolCameraBox">
 
-    <label for="bolFile" class="uploadBolBtn" id="uploadBolLabel">
+    <button class="uploadBolBtn" id="uploadBolBtn" type="button">
       UPLOAD
-    </label>
+    </button>
 
     <input
       id="bolFile"
       type="file"
       accept="image/*,.pdf"
-      style="display:none"
+      style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;"
     >
 
     <img id="bolPreview" class="bolPreviewBig">
@@ -118,6 +155,7 @@ overflow:hidden!important;
 
 
 
+
 <section class="waiting" id="waiting"><div class="timer" id="timer">00:00:00</div></section>
 <section class="working" id="working"><div class="timer" id="timerBlue">00:00:00</div></section>
 <section class="admin" id="admin"><div class="layout"><div class="box"><div class="boxHead"><h2>Requests</h2><span id="count">0</span></div><div style="padding:12px;border-bottom:1px solid #1f2937"><input class="input" id="requestSearch" placeholder="Search customer..."></div><div class="list" id="requestList"></div></div><div class="box"><div class="boxHead"><h2>Details</h2><span id="roleBadge"></span></div><div class="body" id="details">Select request.</div></div></div></section>
@@ -129,10 +167,31 @@ import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTim
 const firebaseConfig={apiKey:"AIzaSyAAukYJ0uf7KA-rSl3OC60cWiVbgS8EoSo",authDomain:"bamboo-bulwark-459920-p2.firebaseapp.com",projectId:"bamboo-bulwark-459920-p2",storageBucket:"bamboo-bulwark-459920-p2.firebasestorage.app",messagingSenderId:"740396048112",appId:"1:740396048112:web:72874b77b37bff2f3e2c35"};
 const app=initializeApp(firebaseConfig),db=getFirestore(app),$=id=>document.getElementById(id);
 const TELEGRAM_WEBAPP_URL="https://script.google.com/macros/s/AKfycbwcK7ajIDr6aKboU1gV7xA-G_1aIfsI8iDdU7QhUI6jvKmmJm3aMt7a9bHEZuiu96IP/exec";
+
+async function sendTelegram(payload){
+  if(!TELEGRAM_WEBAPP_URL){
+    console.warn('Telegram URL missing');
+    return;
+  }
+
+  try{
+    await fetch(TELEGRAM_WEBAPP_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{
+        'Content-Type':'text/plain;charset=utf-8'
+      },
+      body:JSON.stringify(payload)
+    });
+  }catch(err){
+    console.error('Telegram send error:',err);
+  }
+}
+
 let user=null,requests=[],allUsers=[],companies=[],assignments={},selectedId=null,activeId=localStorage.getItem('activeRequestId'),timerInt=null,startTime=null,pendingBol=null,nextPanel=null,previewImages=[],previewIndex=0,currentZoom=1,currentPreviewImage=null,selectedAssignAdmin=null,editMode=null,editTarget=null,bolStream=null;
 let knownNewRequestIds=new Set(),requestsSnapshotReady=false,soundUnlocked=false,bolSending=false;
 $('loginBtn').onclick=login;$('logoutBtn').onclick=logout;$('shiftBtn').onclick=()=>checkBolThen(openShift);$('hoursBtn').onclick=()=>checkBolThen(openHours);$('backShift').onclick=showHome;$('backHours').onclick=showHome;$('backBol').onclick=showHome;const continueBtn=$('continueAfterBol');if(continueBtn)continueBtn.onclick=()=>{pendingBol=null;if(nextPanel)nextPanel()};$('sendBolBtn').onclick=sendBolAction;
-$('bolFile').onchange=readBol;$('loginPassword').onkeydown=e=>{if(e.key==='Enter')login()};$('loginUsername').onkeydown=e=>{if(e.key==='Enter')login()};$('closeModalBtn').onclick=closeImagePreview;$('zoomInBtn').onclick=zoomInImage;$('zoomOutBtn').onclick=zoomOutImage;$('prevImgBtn').onclick=prevImage;$('nextImgBtn').onclick=nextImage;$('requestSearch').oninput=renderAdmin;$('editCancel').onclick=closeEditModal;$('editSave').onclick=saveEditModal;
+$('loginPassword').onkeydown=e=>{if(e.key==='Enter')login()};$('loginUsername').onkeydown=e=>{if(e.key==='Enter')login()};$('closeModalBtn').onclick=closeImagePreview;$('zoomInBtn').onclick=zoomInImage;$('zoomOutBtn').onclick=zoomOutImage;$('prevImgBtn').onclick=prevImage;$('nextImgBtn').onclick=nextImage;$('requestSearch').oninput=renderAdmin;$('editCancel').onclick=closeEditModal;$('editSave').onclick=saveEditModal;
 async function ensureTestCompany(){const c=await getDoc(doc(db,'companies','test_company'));if(!c.exists())await setDoc(doc(db,'companies','test_company'),{companyId:'test_company',name:'Test Company',superAdminUsername:'super',superAdminName:'Dalibor',createdAt:serverTimestamp()});}
 ensureTestCompany();
 onSnapshot(query(collection(db,'requests'),orderBy('createdAt','desc')),snap=>{
@@ -196,33 +255,43 @@ function playNewRequestSound(){
 function checkBolThen(fn){if(user?.bolRequired){showBolCapturePanel()}else fn()}
 
 
+
 function showBolCapturePanel(){
   hideAll();
   pendingBol = null;
   bolSending = false;
 
   const input = $('bolFile');
-  if(input) input.value = '';
+  const uploadBtn = $('uploadBolBtn');
+  const preview = $('bolPreview');
+  const fileName = $('bolFileName');
+  const send = $('sendBolBtn');
 
-  const uploadLabel = $('uploadBolLabel');
-  if(uploadLabel){
-    uploadLabel.classList.remove('hiddenAfterSelect');
-    uploadLabel.innerText = 'UPLOAD';
+  if(input){
+    input.value = '';
+    input.onchange = readBol;
   }
 
-  const preview = $('bolPreview');
+  if(uploadBtn){
+    uploadBtn.style.display = 'flex';
+    uploadBtn.classList.remove('hiddenAfterSelect');
+    uploadBtn.innerText = 'UPLOAD';
+    uploadBtn.onclick = function(){
+      const f = $('bolFile');
+      if(f) f.click();
+    };
+  }
+
   if(preview){
     preview.src = '';
     preview.style.display = 'none';
   }
 
-  const fileName = $('bolFileName');
   if(fileName){
     fileName.innerText = '';
     fileName.style.display = 'none';
   }
 
-  const send = $('sendBolBtn');
   if(send){
     send.style.display = 'none';
     send.disabled = false;
@@ -243,9 +312,10 @@ function readBol(e){
   reader.onload = function(ev){
     pendingBol = ev.target.result;
 
-    const uploadLabel = $('uploadBolLabel');
-    if(uploadLabel){
-      uploadLabel.classList.add('hiddenAfterSelect');
+    const uploadBtn = $('uploadBolBtn');
+    if(uploadBtn){
+      uploadBtn.classList.add('hiddenAfterSelect');
+      uploadBtn.style.display = 'none';
     }
 
     const preview = $('bolPreview');
@@ -401,7 +471,7 @@ async function usernameExists(username){const snap=await getDoc(doc(db,'users',u
 
 
 <div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">
-YR UPLOAD TO SEND v2
+YR TELEGRAM FIX v4
 </div>
 </body>
 
