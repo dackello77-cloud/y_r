@@ -38,6 +38,7 @@
 }
 
 /* YR_PATCH_UPLOAD_SEND_CSS_DONE */
+button:disabled{opacity:.45;cursor:not-allowed!important}
 </style>
 </head>
 <body>
@@ -98,6 +99,70 @@ async function sendTelegram(payload){
   return true;
 }
 
+let yrLastBolRequired = null;
+let yrLastDoneSeen = null;
+
+function requestYrNotificationPermission(){
+  try{
+    if(!("Notification" in window)) return;
+    if(Notification.permission === "default"){
+      Notification.requestPermission().catch(()=>{});
+    }
+  }catch(e){}
+}
+
+function showYrNotification(){
+  try{
+    if("Notification" in window && Notification.permission === "granted"){
+      new Notification("Y&R New Action", {
+        body: "Open Y&R app",
+        tag: "yr-new-action"
+      });
+    }
+  }catch(e){}
+  try{ playNewRequestSound(); }catch(e){}
+}
+
+function checkCustomerActionsForNotification(){
+  try{
+    if(!user || user.role !== "customer") return;
+
+    const me = allUsers.find(u => u.username === user.username);
+    if(!me) return;
+
+    if(yrLastBolRequired === null){
+      yrLastBolRequired = !!me.bolRequired;
+    }else if(!yrLastBolRequired && !!me.bolRequired){
+      showYrNotification();
+      if(typeof showBolCapturePanel === "function") showBolCapturePanel();
+    }
+    yrLastBolRequired = !!me.bolRequired;
+
+    const myDone = requests
+      .filter(r => r.customerUsername === user.username && r.status === "DONE")
+      .sort((a,b)=>(b.doneAt?.seconds||0)-(a.doneAt?.seconds||0))[0];
+
+    const doneKey = myDone ? (myDone.id + "_" + (myDone.doneAt?.seconds || "")) : null;
+
+    if(yrLastDoneSeen === null){
+      yrLastDoneSeen = doneKey;
+    }else if(doneKey && doneKey !== yrLastDoneSeen){
+      showYrNotification();
+      yrLastDoneSeen = doneKey;
+    }
+  }catch(e){
+    console.warn("Customer notification check error", e);
+  }
+}
+
+
+function bolBtnAttrs(customer){
+  return customer && customer.bolRequired ? ' disabled class="btn gray disabled" ' : ' class="btn blue" ';
+}
+
+document.addEventListener('click',requestYrNotificationPermission,{once:true});
+
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, getDoc, setDoc, updateDoc, deleteDoc, runTransaction, arrayUnion, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyAAukYJ0uf7KA-rSl3OC60cWiVbgS8EoSo",authDomain:"bamboo-bulwark-459920-p2.firebaseapp.com",projectId:"bamboo-bulwark-459920-p2",storageBucket:"bamboo-bulwark-459920-p2.firebasestorage.app",messagingSenderId:"740396048112",appId:"1:740396048112:web:72874b77b37bff2f3e2c35"};
@@ -133,10 +198,10 @@ onSnapshot(collection(db,'companies'),snap=>{companies=snap.docs.map(d=>({id:d.i
 onSnapshot(collection(db,'assignments'),snap=>{assignments={};snap.docs.forEach(d=>{assignments[d.id]=Array.isArray(d.data().customers)?d.data().customers:[]});if(user?.role==='admin'||user?.role==='super_admin')renderAdmin();if(selectedAssignAdmin)renderCustomerAssignList()},err=>alert('Firestore assignments error: '+err.message));
 async function login(){try{const username=$('loginUsername').value.trim(),password=$('loginPassword').value.trim();$('loginError').innerText='';if(!username){$('loginError').innerText='Enter username';return}if(username==='full_admin'&&password==='admin1234'){user={username:'full_admin',name:'Full Admin',role:'full_admin'};localStorage.setItem('user',JSON.stringify(user));$('loginScreen').style.display='none';$('logoutBtn').style.display='block';$('userInfo').innerText='Full Admin / main';showAdmin();renderFullAdminPanel();return}const snap=await getDoc(doc(db,'users',username));if(!snap.exists()){$('loginError').innerText='User not found';return}const data={id:snap.id,...snap.data()};if(data.role!=='customer'&&data.password!==password){$('loginError').innerText='Wrong password';return}if(!data.companyId)data.companyId='test_company';user=data;localStorage.setItem('user',JSON.stringify(user));$('loginScreen').style.display='none';$('logoutBtn').style.display='block';$('userInfo').innerText=(user.name||user.username)+' / '+user.role+' / '+getCompanyName(user.companyId);if(user.role==='customer')refreshCustomer();else showAdmin()}catch(err){$('loginError').innerText='Login error: '+err.message}}
 function logout(){localStorage.removeItem('user');localStorage.removeItem('activeRequestId');location.reload()}const savedUser=localStorage.getItem('user');if(savedUser){try{user=JSON.parse(savedUser);$('loginScreen').style.display='none';$('logoutBtn').style.display='block';$('userInfo').innerText=(user.name||user.username)+' / '+user.role+(user.companyId?' / '+getCompanyName(user.companyId):'');if(user.role==='customer')refreshCustomer();else showAdmin()}catch(e){localStorage.removeItem('user')}}
-function hideAll(){['home','shiftPanel','hoursPanel','bolPanel','waiting','working','admin'].forEach(id=>$(id).style.display='none')}function showHome(){hideAll();pendingBol=null;nextPanel=null;const bf=$('bolFile');if(bf)bf.value='';const bp=$('bolPreview');if(bp)bp.style.display='none';const sb=$('sendBolBtn');if(sb)sb.style.display='none';$('home').style.display='grid'}function showAdmin(){hideAll();$('admin').style.display='block';$('roleBadge').innerText=user.role;if(user.role==='full_admin')renderFullAdminPanel();else renderAdmin()}
+function hideAll(){['home','shiftPanel','hoursPanel','bolPanel','waiting','working','admin'].forEach(id=>$(id).style.display='none')}function showHome(){try{checkCustomerActionsForNotification();}catch(e){}hideAll();pendingBol=null;nextPanel=null;const bf=$('bolFile');if(bf)bf.value='';const bp=$('bolPreview');if(bp)bp.style.display='none';const sb=$('sendBolBtn');if(sb)sb.style.display='none';$('home').style.display='grid'}function showAdmin(){hideAll();$('admin').style.display='block';$('roleBadge').innerText=user.role;if(user.role==='full_admin')renderFullAdminPanel();else renderAdmin()}
 function companyOf(obj){return obj?.companyId||'test_company'}function getCompanyName(id){return companies.find(c=>c.id===id||c.companyId===id)?.name||(id==='test_company'?'Test Company':id||'')}function sameCompany(obj){return user?.role==='full_admin'||companyOf(obj)===companyOf(user)}function userKey(u){return u?.id||u?.username||''}function userLabel(u){return u?.name||u?.username||u?.id||''}
 function isLast10Days(r){const d=getDate(r.createdAt);const limit=new Date();limit.setDate(limit.getDate()-10);return d>=limit}function getCustomerTicket(){return requests.filter(r=>r.customerUsername===user.username&&companyOf(r)===companyOf(user)).sort((a,b)=>getDate(b.createdAt)-getDate(a.createdAt))[0]||null}function getActiveCustomerRequest(){const t=getCustomerTicket();return(t&&t.status!=='DONE')?t:null}
-function refreshCustomer(){const r=getActiveCustomerRequest();hideAll();if(!r){localStorage.removeItem('activeRequestId');activeId=null;if(user?.bolRequired){showBolCapturePanel();return}showHome();return}activeId=r.id;localStorage.setItem('activeRequestId',activeId);startTime=getDate(r.createdAt);if(r.status==='NEW'){$('waiting').style.display='flex';startTimer()}else if(r.status==='TAKEN'){$('working').style.display='flex';startTimer()}else{localStorage.removeItem('activeRequestId');activeId=null;if(user?.bolRequired){showBolCapturePanel();return}showHome()}}
+function refreshCustomer(){try{checkCustomerActionsForNotification();}catch(e){}const r=getActiveCustomerRequest();hideAll();if(!r){localStorage.removeItem('activeRequestId');activeId=null;if(user?.bolRequired){showBolCapturePanel();return}showHome();try{checkCustomerActionsForNotification();}catch(e){}return}activeId=r.id;localStorage.setItem('activeRequestId',activeId);startTime=getDate(r.createdAt);if(r.status==='NEW'){$('waiting').style.display='flex';startTimer()}else if(r.status==='TAKEN'){$('working').style.display='flex';startTimer()}else{localStorage.removeItem('activeRequestId');activeId=null;if(user?.bolRequired){showBolCapturePanel();return}showHome()}}
 function startTimer(){clearInterval(timerInt);timerInt=setInterval(()=>{const seconds=Math.max(0,Math.floor((new Date()-startTime)/1000)),h=String(Math.floor(seconds/3600)).padStart(2,'0'),m=String(Math.floor((seconds%3600)/60)).padStart(2,'0'),s=String(seconds%60).padStart(2,'0');$('timer').innerText=h+':'+m+':'+s;$('timerBlue').innerText=h+':'+m+':'+s},1000)}
 
 function unlockSound(){soundUnlocked=true}
@@ -312,6 +377,7 @@ function closeEditModal(){$('editModal').style.display='none';editMode=null;edit
 function getRequestImages(r){const imgs=[];if(r?.bolImage)imgs.push(r.bolImage);(Array.isArray(r?.messages)?r.messages:[]).forEach(m=>{if(m.bolImage&&!imgs.includes(m.bolImage))imgs.push(m.bolImage)});return imgs}function getImageIndex(r,src){const arr=getRequestImages(r);const i=arr.indexOf(src);return i>=0?i:0}function openImagePreviewByIndex(index){const r=requests.find(x=>x.id===selectedId);previewImages=r?getRequestImages(r):[];if(!previewImages.length)return;previewIndex=Math.max(0,Math.min(index,previewImages.length-1));openImagePreview(previewImages[previewIndex])}function resetImageView(){const img=$('modalImage');currentZoom=1;img.style.transform='scale(1)';img.style.width='auto';img.style.maxWidth='92vw';img.style.maxHeight='82vh';const area=document.querySelector('.imageArea');if(area){area.scrollTop=0;area.scrollLeft=0}}function openImagePreview(src){currentPreviewImage=src;const img=$('modalImage');img.onload=()=>{resetImageView()};img.src=src;resetImageView();$('imageModal').style.display='flex';updateImageCounter()}function closeImagePreview(){$('imageModal').style.display='none';$('modalImage').src=''}function zoomInImage(){currentZoom=Math.min(currentZoom+0.2,3);$('modalImage').style.transform='scale('+currentZoom+')';const area=document.querySelector('.imageArea');if(area)area.scrollTop=0}function zoomOutImage(){currentZoom=Math.max(currentZoom-0.2,0.5);$('modalImage').style.transform='scale('+currentZoom+')';const area=document.querySelector('.imageArea');if(area)area.scrollTop=0}function prevImage(){if(!previewImages.length)return;previewIndex=previewIndex<=0?previewImages.length-1:previewIndex-1;openImagePreview(previewImages[previewIndex])}function nextImage(){if(!previewImages.length)return;previewIndex=previewIndex>=previewImages.length-1?0:previewIndex+1;openImagePreview(previewImages[previewIndex])}function updateImageCounter(){$('imageCounter').innerText=previewImages.length?(previewIndex+1)+' / '+previewImages.length:''}
 async function usernameExists(username){const snap=await getDoc(doc(db,'users',username));return snap.exists()}function getAssignedCustomers(adminUsername,companyId){const id=companyId+'_'+adminUsername;if(Array.isArray(assignments[id]))return assignments[id];const admin=allUsers.find(u=>userKey(u)===adminUsername&&companyOf(u)===companyId);return Array.isArray(admin?.assignedCustomers)?admin.assignedCustomers:[]}function slug(s){return String(s||'company').toLowerCase().trim().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'company'}function getDate(v){if(v?.toDate)return v.toDate();if(typeof v==='number')return new Date(v);return new Date(v||Date.now())}function formatDate(v){if(!v)return'-';return getDate(v).toLocaleString([],{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}function esc(t){return String(t||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function escAttr(t){return esc(t)}
 </script>
-<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR MODULE TELEGRAM FIX v14</div>
+
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR NOTIFY BOL DISABLE v15</div>
 </body>
 </html>
