@@ -1,4 +1,3 @@
-<!-- TEST NEW VERSION  -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +7,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}body{background:#0f172a;color:#fff;min-height:100vh}.header{background:#020617;border-bottom:1px solid #1f2937;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px}.header h1{font-size:24px}.header span{color:#94a3b8}.btn{border:none;border-radius:10px;padding:11px 14px;font-weight:bold;cursor:pointer;margin:2px}.blue{background:#38bdf8;color:#020617}.green{background:#22c55e;color:#052e16}.gray{background:#334155;color:white}.redbtn{background:#ef4444;color:white}.disabled{opacity:.45;cursor:not-allowed!important}.login{position:fixed;inset:0;background:#020617;display:flex;align-items:center;justify-content:center;z-index:99}.loginBox{background:#0f172a;border:1px solid #1f2937;border-radius:18px;padding:28px;width:340px}.input,.loginBox input,select{width:100%;padding:12px;border-radius:10px;border:1px solid #334155;background:#111827;color:white;margin-bottom:10px}.home{min-height:calc(100vh - 65px);display:none;grid-template-columns:1fr 1fr}.big{display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center}.shift{background:#facc15;color:#1f2937}.hours{background:#dc2626}.panel{display:none;min-height:calc(100vh - 65px);padding:24px}.panelTop{display:flex;justify-content:flex-start;align-items:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.choice{min-height:100px;border:none;border-radius:18px;font-size:36px;font-weight:bold;cursor:pointer}.waiting,.working{display:none;min-height:calc(100vh - 65px);align-items:center;justify-content:center;text-align:center;padding:20px}.waiting{background:#991b1b}.working{background:#1d4ed8}.timer{font-size:72px;font-weight:bold;margin:20px}.admin{display:none;padding:20px}.layout{display:grid;grid-template-columns:360px 1fr;gap:16px}.box{background:#020617;border:1px solid #1f2937;border-radius:18px;overflow:hidden}.boxHead{padding:15px;border-bottom:1px solid #1f2937;display:flex;justify-content:space-between}.list{padding:12px;max-height:78vh;overflow:auto}.card{padding:14px;border-radius:14px;margin-bottom:10px;cursor:pointer;border:2px solid transparent}.card.sel{border-color:#38bdf8}.new{background:#7f1d1d}.taken{background:#1d4ed8}.done{background:#166534}.body{padding:18px}.line{margin:8px 0;color:#cbd5e1}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.msg{background:#1e293b;padding:9px;border-radius:10px;margin-bottom:8px}.msg.lastMsg{border:2px solid #38bdf8;background:#0f3a55}.chat{background:#0f172a;border:1px solid #1f2937;border-radius:12px;padding:10px;min-height:140px;max-height:300px;overflow:auto;margin-bottom:10px}.tabs{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}.mini{font-size:12px;color:#94a3b8;margin-left:5px}.error{color:#f87171;margin-top:10px}.success{color:#22c55e;margin-top:10px}.note{color:#94a3b8;font-size:13px;margin-top:8px}.hr{border:0;border-top:1px solid #1f2937;margin:20px 0}.inlineImageIcon{background:#facc15;color:#111827;border:none;border-radius:7px;padding:2px 6px;margin-left:6px;cursor:pointer;font-weight:bold}.preview{max-width:240px;border-radius:12px;border:1px solid #334155}.modal{position:fixed;inset:0;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;z-index:999;overflow:hidden}.modalTop{position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:1002}.modalBtn{width:46px;height:46px;border:none;border-radius:50%;background:#334155;color:white;font-size:28px;font-weight:bold;cursor:pointer}.closeBtn{background:#ef4444}.imageArea{width:100vw;height:100vh;overflow:auto;display:block;padding:75px 10px 45px;text-align:center}.modalImg{display:block;margin:0 auto;width:auto;max-width:92vw;max-height:82vh;height:auto;border-radius:0;transform-origin:top center;transition:transform .15s ease}.modalArrow{position:absolute;top:50%;transform:translateY(-50%);width:54px;height:70px;border:none;background:rgba(51,65,85,.75);color:white;font-size:54px;font-weight:bold;cursor:pointer;z-index:1001}.leftArrow{left:8px}.rightArrow{right:8px}.imageCounter{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.8);color:#cbd5e1;padding:6px 12px;border-radius:20px;font-size:14px;z-index:1002}.assignRow{display:block;margin:8px 0;padding:10px;border-radius:10px;border:1px solid #334155;background:#111827}.assignRow.checked{border:2px solid #22c55e;background:#064e3b}.simpleModal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1000}.simpleBox{background:#020617;border:1px solid #334155;border-radius:18px;padding:20px;width:min(460px,94vw)}.bolNotice{min-height:calc(100vh - 65px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#020617;padding:24px}.bolNoticeBox{width:min(720px,94vw);background:#111827;border:2px solid #38bdf8;border-radius:22px;padding:28px;box-shadow:0 0 28px rgba(56,189,248,.25)}.bolNoticeTitle{font-size:34px;font-weight:bold;color:#facc15;margin-bottom:16px}.bolEmail{font-size:30px;font-weight:bold;color:#38bdf8;margin:18px 0;word-break:break-word}.blinkBol{animation:blinkBolAnim .7s linear infinite}@keyframes blinkBolAnim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(1.03)}}#continueAfterBol{display:none;width:min(360px,90vw);font-size:22px;margin-top:22px;padding:16px 18px}
 
-.logoLogin{width:92px;height:92px;border-radius:22px;object-fit:cover;display:block;margin:0 auto 18px auto}.bolCameraBox{width:min(720px,94vw);background:#111827;border:2px solid #38bdf8;border-radius:22px;padding:18px;box-shadow:0 0 28px rgba(56,189,248,.25)}.bolCameraTitle{display:none}.bolPreviewBig{max-width:100%;max-height:62vh;border-radius:14px;border:1px solid #334155;margin:0 0 14px 0;display:none}.Label{display:none}.hiddenFile{display:block;width:100%;padding:18px;border-radius:18px;background:#111827;color:white;border:2px solid #38bdf8;font-size:20px}.sendBolBtn{display:none;width:100%;font-size:22px;margin-top:8px;padding:16px 18px}.sendBolBtn.sending{opacity:.45;cursor:not-allowed}.hiddenBolText{display:none!important}.hiddenBolText.hidden{display:none!important}
+.logoLogin{width:92px;height:92px;border-radius:22px;object-fit:cover;display:block;margin:0 auto 18px auto}.bolCameraBox{width:min(720px,94vw);background:#111827;border:2px solid #38bdf8;border-radius:22px;padding:18px;box-shadow:0 0 28px rgba(56,189,248,.25)}.bolCameraTitle{display:none}.bolPreviewBig{max-width:100%;max-height:62vh;border-radius:14px;border:1px solid #334155;margin:0 0 14px 0;display:none}.Label{display:none}.sendBolBtn{display:none;width:100%;font-size:22px;margin-top:8px;padding:16px 18px}.sendBolBtn.sending{opacity:.45;cursor:not-allowed}.hiddenBolText{display:none!important}.hiddenBolText.hidden{display:none!important}
 @media(max-width:850px){.header{flex-direction:column;align-items:flex-start}.home{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.choice{font-size:30px}.list{max-height:none}}
 
 .hiddenBolText,.hiddenBolBtn,[for="bolFile"],[for="bolCameraInput"]{
@@ -20,21 +19,50 @@ overflow:hidden!important;
 }
 
 
-.bolVideo{
-width:100%;
-max-height:65vh;
-border-radius:14px;
-background:#000;
-object-fit:cover;
-display:none;
-margin-bottom:12px;
+
+
+
+.uploadBolBtn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px 18px;
+  border-radius:18px;
+  background:#facc15;
+  color:#111827;
+  font-size:30px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-bottom:16px;
+  text-align:center;
 }
-.captureBolBtn{
-width:100%;
-font-size:22px;
-margin-top:8px;
-padding:16px 18px;
-display:none;
+.bolFileName{
+  display:none;
+  color:#cbd5e1;
+  font-size:16px;
+  margin:10px 0 14px 0;
+  word-break:break-word;
+  text-align:center;
+}
+.bolPreviewBig{
+  max-width:100%;
+  max-height:62vh;
+  border-radius:14px;
+  border:1px solid #334155;
+  margin:0 0 14px 0;
+  display:none;
+}
+.sendBolBtn{
+  display:none;
+  width:100%;
+  font-size:22px;
+  margin-top:8px;
+  padding:16px 18px;
+}
+.sendBolBtn.sending{
+  opacity:.45;
+  cursor:not-allowed;
 }
 
 </style>
@@ -45,15 +73,25 @@ display:none;
 <section class="home" id="home"><div class="big shift" id="shiftBtn"></div><div class="big hours" id="hoursBtn"></div></section>
 <section class="panel" id="shiftPanel"><div class="panelTop"><button class="btn gray" id="backShift">←</button></div><div class="grid" id="shiftGrid"></div></section>
 <section class="panel" id="hoursPanel"><div class="panelTop"><button class="btn gray" id="backHours">←</button></div><div class="grid" id="hoursGrid"></div></section>
+
 <section class="panel bolNotice" id="bolPanel">
   <div class="bolCameraBox">
-    <video id="bolVideo" class="bolVideo" autoplay playsinline muted></video>
-    <canvas id="bolCanvas" style="display:none"></canvas>
-    <img id="bolPreview" class="bolPreviewBig" style="display:none">
-    <button class="btn blue captureBolBtn" id="captureBolBtn">CAPTURE</button>
-    <button class="btn blue sendBolBtn" id="sendBolBtn">Send</button>
+    <label class="uploadBolBtn" for="bolFile">UPLOAD BOL</label>
+
+    <input
+      id="bolFile"
+      type="file"
+      accept="image/*,application/pdf"
+      style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;"
+    >
+
+    <img id="bolPreview" class="bolPreviewBig">
+    <div id="bolFileName" class="bolFileName"></div>
+
+    <button class="btn blue sendBolBtn" id="sendBolBtn">SEND</button>
   </div>
 </section>
+
 <section class="waiting" id="waiting"><div class="timer" id="timer">00:00:00</div></section>
 <section class="working" id="working"><div class="timer" id="timerBlue">00:00:00</div></section>
 <section class="admin" id="admin"><div class="layout"><div class="box"><div class="boxHead"><h2>Requests</h2><span id="count">0</span></div><div style="padding:12px;border-bottom:1px solid #1f2937"><input class="input" id="requestSearch" placeholder="Search customer..."></div><div class="list" id="requestList"></div></div><div class="box"><div class="boxHead"><h2>Details</h2><span id="roleBadge"></span></div><div class="body" id="details">Select request.</div></div></div></section>
@@ -67,7 +105,8 @@ const app=initializeApp(firebaseConfig),db=getFirestore(app),$=id=>document.getE
 const TELEGRAM_WEBAPP_URL="https://script.google.com/macros/s/AKfycbwcK7ajIDr6aKboU1gV7xA-G_1aIfsI8iDdU7QhUI6jvKmmJm3aMt7a9bHEZuiu96IP/exec";
 let user=null,requests=[],allUsers=[],companies=[],assignments={},selectedId=null,activeId=localStorage.getItem('activeRequestId'),timerInt=null,startTime=null,pendingBol=null,nextPanel=null,previewImages=[],previewIndex=0,currentZoom=1,currentPreviewImage=null,selectedAssignAdmin=null,editMode=null,editTarget=null,bolStream=null;
 let knownNewRequestIds=new Set(),requestsSnapshotReady=false,soundUnlocked=false,bolSending=false;
-$('loginBtn').onclick=login;$('logoutBtn').onclick=logout;$('shiftBtn').onclick=()=>checkBolThen(openShift);$('hoursBtn').onclick=()=>checkBolThen(openHours);$('backShift').onclick=showHome;$('backHours').onclick=showHome;$('backBol').onclick=showHome;const continueBtn=$('continueAfterBol');if(continueBtn)continueBtn.onclick=()=>{pendingBol=null;if(nextPanel)nextPanel()};$('sendBolBtn').onclick=sendBolAction;$('loginPassword').onkeydown=e=>{if(e.key==='Enter')login()};$('loginUsername').onkeydown=e=>{if(e.key==='Enter')login()};$('closeModalBtn').onclick=closeImagePreview;$('zoomInBtn').onclick=zoomInImage;$('zoomOutBtn').onclick=zoomOutImage;$('prevImgBtn').onclick=prevImage;$('nextImgBtn').onclick=nextImage;$('requestSearch').oninput=renderAdmin;$('editCancel').onclick=closeEditModal;$('editSave').onclick=saveEditModal;
+$('loginBtn').onclick=login;$('logoutBtn').onclick=logout;$('shiftBtn').onclick=()=>checkBolThen(openShift);$('hoursBtn').onclick=()=>checkBolThen(openHours);$('backShift').onclick=showHome;$('backHours').onclick=showHome;$('backBol').onclick=showHome;const continueBtn=$('continueAfterBol');if(continueBtn)continueBtn.onclick=()=>{pendingBol=null;if(nextPanel)nextPanel()};$('sendBolBtn').onclick=sendBolAction;
+$('bolFile').onchange=readBol;$('loginPassword').onkeydown=e=>{if(e.key==='Enter')login()};$('loginUsername').onkeydown=e=>{if(e.key==='Enter')login()};$('closeModalBtn').onclick=closeImagePreview;$('zoomInBtn').onclick=zoomInImage;$('zoomOutBtn').onclick=zoomOutImage;$('prevImgBtn').onclick=prevImage;$('nextImgBtn').onclick=nextImage;$('requestSearch').oninput=renderAdmin;$('editCancel').onclick=closeEditModal;$('editSave').onclick=saveEditModal;
 async function ensureTestCompany(){const c=await getDoc(doc(db,'companies','test_company'));if(!c.exists())await setDoc(doc(db,'companies','test_company'),{companyId:'test_company',name:'Test Company',superAdminUsername:'super',superAdminName:'Dalibor',createdAt:serverTimestamp()});}
 ensureTestCompany();
 onSnapshot(query(collection(db,'requests'),orderBy('createdAt','desc')),snap=>{
@@ -129,115 +168,172 @@ function playNewRequestSound(){
   }catch(e){}
 }
 function checkBolThen(fn){if(user?.bolRequired){showBolCapturePanel()}else fn()}
+
 function showBolCapturePanel(){
   hideAll();
-  pendingBol=null;
-  nextPanel=null;
-  bolSending=false;
+  pendingBol = null;
+  bolSending = false;
 
-  const preview=$('bolPreview');
-  if(preview){preview.src='';preview.style.display='none'}
+  const input = $('bolFile');
+  if(input) input.value = '';
 
-  const send=$('sendBolBtn');
+  const preview = $('bolPreview');
+  if(preview){
+    preview.src = '';
+    preview.style.display = 'none';
+  }
+
+  const fileName = $('bolFileName');
+  if(fileName){
+    fileName.innerText = '';
+    fileName.style.display = 'none';
+  }
+
+  const send = $('sendBolBtn');
   if(send){
-    send.style.display='none';
-    send.disabled=false;
+    send.style.display = 'none';
+    send.disabled = false;
     send.classList.remove('sending');
-    send.innerText='Send';
-    send.onclick=sendBolAction;
+    send.innerText = 'SEND';
+    send.onclick = sendBolAction;
   }
 
-  const cap=$('captureBolBtn');
-  if(cap){
-    cap.style.display='none';
-    cap.disabled=false;
-    cap.onclick=captureBolFrame;
-  }
-
-  const video=$('bolVideo');
-  if(video)video.style.display='block';
-
-  $('bolPanel').style.display='flex';
-
-  startBolCamera();
+  $('bolPanel').style.display = 'flex';
 }
 
-async function startBolCamera(){
-  try{
-    if(bolStream){
-      bolStream.getTracks().forEach(t=>t.stop());
-      bolStream=null;
+function readBol(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(ev){
+    pendingBol = ev.target.result;
+
+    const preview = $('bolPreview');
+    const fileName = $('bolFileName');
+
+    if(file.type && file.type.startsWith('image/')){
+      if(preview){
+        preview.src = pendingBol;
+        preview.style.display = 'block';
+      }
+      if(fileName){
+        fileName.innerText = file.name || 'BOL image selected';
+        fileName.style.display = 'block';
+      }
+    }else{
+      if(preview){
+        preview.src = '';
+        preview.style.display = 'none';
+      }
+      if(fileName){
+        fileName.innerText = file.name || 'BOL file selected';
+        fileName.style.display = 'block';
+      }
     }
 
-    const video=$('bolVideo');
-    const stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:'environment'}},
-      audio:false
+    const send = $('sendBolBtn');
+    if(send){
+      send.style.display = 'block';
+      send.disabled = false;
+      send.classList.remove('sending');
+      send.innerText = 'SEND';
+      send.onclick = sendBolAction;
+    }
+  };
+
+  reader.readAsDataURL(file);
+}
+
+async function sendBolAction(){
+  if(bolSending) return;
+  if(!pendingBol) return;
+
+  bolSending = true;
+
+  const send = $('sendBolBtn');
+  if(send){
+    send.disabled = true;
+    send.classList.add('sending');
+    send.innerText = 'Sending...';
+    send.onclick = null;
+  }
+
+  try{
+    const payload = {
+      action: 'bol_photo',
+      customerName: user.name || user.username,
+      username: user.username,
+      company: getCompanyName(companyOf(user)),
+      image: pendingBol,
+      time: new Date().toLocaleString()
+    };
+
+    await sendTelegram(payload);
+
+    const ref = await addDoc(collection(db,'requests'), {
+      companyId: companyOf(user),
+      customerUsername: user.username,
+      customerName: user.name || user.username,
+      type: 'BOL',
+      value: 'UPLOAD',
+      status: 'NEW',
+      createdAt: serverTimestamp(),
+      takenByName: null,
+      takenByUsername: null,
+      takenAt: null,
+      doneByName: null,
+      doneAt: null,
+      bolImage: null,
+      bolTelegram: true,
+      messages: [
+        {
+          sender: user.name || user.username,
+          text: 'BOL sent to Telegram.',
+          createdAt: Date.now()
+        }
+      ]
     });
 
-    bolStream=stream;
-    video.srcObject=stream;
-    video.style.display='block';
+    await updateDoc(doc(db,'users',user.username), {
+      bolRequired: false,
+      lastRequestAt: serverTimestamp(),
+      lastRequestLabel: 'BOL UPLOAD',
+      lastRequestStatus: 'NEW'
+    });
 
-    const cap=$('captureBolBtn');
-    if(cap)cap.style.display='block';
+    user.bolRequired = false;
+    localStorage.setItem('user', JSON.stringify(user));
+
+    setTimeout(() => {
+      updateDoc(doc(db,'requests',ref.id), {
+        status: 'DONE',
+        doneByName: 'System',
+        doneAt: serverTimestamp(),
+        messages: arrayUnion({
+          sender: 'System',
+          text: 'BOL action auto closed.',
+          createdAt: Date.now()
+        })
+      }).catch(()=>{});
+    }, 5000);
+
+    pendingBol = null;
+    showHome();
 
   }catch(err){
-    const cap=$('captureBolBtn');
-    if(cap){
-      cap.innerText='OPEN CAMERA';
-      cap.style.display='block';
-      cap.onclick=startBolCamera;
+    bolSending = false;
+
+    if(send){
+      send.disabled = false;
+      send.classList.remove('sending');
+      send.innerText = 'SEND';
+      send.onclick = sendBolAction;
     }
+
+    alert('Greška kod slanja BOL-a: ' + err.message);
   }
-}
-
-function captureBolFrame(){
-  const video=$('bolVideo');
-  const canvas=$('bolCanvas');
-  const preview=$('bolPreview');
-
-  if(!video || !canvas || !video.videoWidth){
-    startBolCamera();
-    return;
-  }
-
-  const max=900;
-  let w=video.videoWidth;
-  let h=video.videoHeight;
-
-  if(w>h && w>max){
-    h=Math.round(h*max/w);
-    w=max;
-  }else if(h>max){
-    w=Math.round(w*max/h);
-    h=max;
-  }
-
-  canvas.width=w;
-  canvas.height=h;
-  const ctx=canvas.getContext('2d');
-  ctx.drawImage(video,0,0,w,h);
-
-  pendingBol=canvas.toDataURL('image/jpeg',0.72);
-
-  if(preview){
-    preview.src=pendingBol;
-    preview.style.display='block';
-  }
-
-  video.style.display='none';
-
-  if(bolStream){
-    bolStream.getTracks().forEach(t=>t.stop());
-    bolStream=null;
-  }
-
-  const cap=$('captureBolBtn');
-  if(cap)cap.style.display='none';
-
-  const send=$('sendBolBtn');
-  if(send)send.style.display='block';
 }
 
 function openShift(){hideAll();const grid=$('shiftGrid');grid.innerHTML='';grid.appendChild(choice('N','shift',()=>sendRequest('SHIFT','NOW')));const now=new Date();now.setMinutes(0,0,0);now.setHours(now.getHours()+1);for(let i=0;i<9;i++){const d=new Date(now.getTime()+i*3600000);let h=d.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;const label=h+ap;grid.appendChild(choice(label,'shift',()=>sendRequest('SHIFT',label)))}$('shiftPanel').style.display='block'}function openHours(){hideAll();const grid=$('hoursGrid');grid.innerHTML='';grid.appendChild(choice('B','hours',()=>sendRequest('HOURS','BREAK')));for(let i=1;i<=7;i++){const label=i+'+';grid.appendChild(choice(label,'hours',()=>sendRequest('HOURS',label)))}$('hoursPanel').style.display='block'}function choice(text,cls,fn){const b=document.createElement('button');b.className='choice '+cls;b.innerText=text;b.onclick=fn;return b}
@@ -264,6 +360,6 @@ function getRequestImages(r){const imgs=[];if(r?.bolImage)imgs.push(r.bolImage);
 async function usernameExists(username){const snap=await getDoc(doc(db,'users',username));return snap.exists()}function getAssignedCustomers(adminUsername,companyId){const id=companyId+'_'+adminUsername;if(Array.isArray(assignments[id]))return assignments[id];const admin=allUsers.find(u=>userKey(u)===adminUsername&&companyOf(u)===companyId);return Array.isArray(admin?.assignedCustomers)?admin.assignedCustomers:[]}function slug(s){return String(s||'company').toLowerCase().trim().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'company'}function getDate(v){if(v?.toDate)return v.toDate();if(typeof v==='number')return new Date(v);return new Date(v||Date.now())}function formatDate(v){if(!v)return'-';return getDate(v).toLocaleString([],{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}function esc(t){return String(t||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function escAttr(t){return esc(t)}
 </script>
 
-<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR BOL CHOOSE v4</div>
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR UPLOAD BOL SIMPLE v1</div>
 </body>
 </html>
