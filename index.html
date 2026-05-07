@@ -94,12 +94,6 @@ async function sendTelegram(payload){
       body:JSON.stringify(payload)
     });
   }catch(err){
-if(btn){
-btn.disabled=false;
-btn.classList.remove('disabled');
-btn.innerText='Request BOL';
-}
-
     console.warn("Telegram error:", err);
   }
   return true;
@@ -202,13 +196,7 @@ onSnapshot(query(collection(db,'requests'),orderBy('createdAt','desc')),snap=>{
 onSnapshot(collection(db,'users'),snap=>{allUsers=snap.docs.map(d=>({id:d.id,...d.data()}));if(user&&user.role!=='full_admin'){const fresh=allUsers.find(u=>userKey(u)===userKey(user));if(fresh){user=fresh;localStorage.setItem('user',JSON.stringify(user));$('userInfo').innerText=(user.name||user.username)+' / '+user.role+' / '+getCompanyName(user.companyId)}}if(user?.role==='customer')refreshCustomer();if(user?.role==='super_admin'||user?.role==='full_admin')renderAdmin()},err=>alert('Firestore users error: '+err.message));
 onSnapshot(collection(db,'companies'),snap=>{companies=snap.docs.map(d=>({id:d.id,...d.data()}));if(user?.role==='full_admin')renderFullAdminPanel();if(user&&user.role!=='customer')renderAdmin()},err=>alert('Firestore companies error: '+err.message));
 onSnapshot(collection(db,'assignments'),snap=>{assignments={};snap.docs.forEach(d=>{assignments[d.id]=Array.isArray(d.data().customers)?d.data().customers:[]});if(user?.role==='admin'||user?.role==='super_admin')renderAdmin();if(selectedAssignAdmin)renderCustomerAssignList()},err=>alert('Firestore assignments error: '+err.message));
-async function login(){try{const username=$('loginUsername').value.trim(),password=$('loginPassword').value.trim();$('loginError').innerText='';if(!username){$('loginError').innerText='Enter username';return}if(username==='full_admin'&&password==='admin1234'){user={username:'full_admin',name:'Full Admin',role:'full_admin'};localStorage.setItem('user',JSON.stringify(user));$('loginScreen').style.display='none';$('logoutBtn').style.display='block';$('userInfo').innerText='Full Admin / main';showAdmin();renderFullAdminPanel();return}const snap=await getDoc(doc(db,'users',username));if(!snap.exists()){$('loginError').innerText='User not found';return}const data={id:snap.id,...snap.data()};if(data.role!=='customer'&&data.password!==password){$('loginError').innerText='Wrong password';return}if(!data.companyId)data.companyId='test_company';user=data;localStorage.setItem('user',JSON.stringify(user));$('loginScreen').style.display='none';$('logoutBtn').style.display='block';$('userInfo').innerText=(user.name||user.username)+' / '+user.role+' / '+getCompanyName(user.companyId);if(user.role==='customer')refreshCustomer();else showAdmin()}catch(err){
-if(btn){
-btn.disabled=false;
-btn.classList.remove('disabled');
-btn.innerText='Request BOL';
-}
-$('loginError').innerText='Login error: '+err.message}}
+async function login(){try{const username=$('loginUsername').value.trim(),password=$('loginPassword').value.trim();$('loginError').innerText='';if(!username){$('loginError').innerText='Enter username';return}if(username==='full_admin'&&password==='admin1234'){user={username:'full_admin',name:'Full Admin',role:'full_admin'};localStorage.setItem('user',JSON.stringify(user));$('loginScreen').style.display='none';$('logoutBtn').style.display='block';$('userInfo').innerText='Full Admin / main';showAdmin();renderFullAdminPanel();return}const snap=await getDoc(doc(db,'users',username));if(!snap.exists()){$('loginError').innerText='User not found';return}const data={id:snap.id,...snap.data()};if(data.role!=='customer'&&data.password!==password){$('loginError').innerText='Wrong password';return}if(!data.companyId)data.companyId='test_company';user=data;localStorage.setItem('user',JSON.stringify(user));$('loginScreen').style.display='none';$('logoutBtn').style.display='block';$('userInfo').innerText=(user.name||user.username)+' / '+user.role+' / '+getCompanyName(user.companyId);if(user.role==='customer')refreshCustomer();else showAdmin()}catch(err){$('loginError').innerText='Login error: '+err.message}}
 function logout(){localStorage.removeItem('user');localStorage.removeItem('activeRequestId');location.reload()}const savedUser=localStorage.getItem('user');if(savedUser){try{user=JSON.parse(savedUser);$('loginScreen').style.display='none';$('logoutBtn').style.display='block';$('userInfo').innerText=(user.name||user.username)+' / '+user.role+(user.companyId?' / '+getCompanyName(user.companyId):'');if(user.role==='customer')refreshCustomer();else showAdmin()}catch(e){localStorage.removeItem('user')}}
 function hideAll(){['home','shiftPanel','hoursPanel','bolPanel','waiting','working','admin'].forEach(id=>$(id).style.display='none')}function showHome(){try{checkCustomerActionsForNotification();}catch(e){}hideAll();pendingBol=null;nextPanel=null;const bf=$('bolFile');if(bf)bf.value='';const bp=$('bolPreview');if(bp)bp.style.display='none';const sb=$('sendBolBtn');if(sb)sb.style.display='none';$('home').style.display='grid'}function showAdmin(){hideAll();$('admin').style.display='block';$('roleBadge').innerText=user.role;if(user.role==='full_admin')renderFullAdminPanel();else renderAdmin()}
 function companyOf(obj){return obj?.companyId||'test_company'}function getCompanyName(id){return companies.find(c=>c.id===id||c.companyId===id)?.name||(id==='test_company'?'Test Company':id||'')}function sameCompany(obj){return user?.role==='full_admin'||companyOf(obj)===companyOf(user)}function userKey(u){return u?.id||u?.username||''}function userLabel(u){return u?.name||u?.username||u?.id||''}
@@ -365,29 +353,17 @@ function readBol(e){
 
   reader.readAsDataURL(file);
 }
-async function sendBolAction(){if(bolSending)return;try{if(!pendingBol){return}bolSending=true;const send=$('sendBolBtn');if(send){send.disabled=true;send.classList.add('sending')}const payload={action:'bol_photo',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),image:pendingBol,time:new Date().toLocaleString()};await sendTelegram(payload);const ref=await addDoc(collection(db,'requests'),{companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type:'BOL',value:'PHOTO',status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolTelegram:true,messages:[{sender:user.name||user.username,text:'BOL photo sent to Telegram.',createdAt:Date.now()}]});await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user));setTimeout(()=>updateDoc(doc(db,'requests',ref.id),{status:'DONE',doneByName:'System',doneAt:serverTimestamp(),messages:arrayUnion({sender:'System',text:'BOL action auto closed.',createdAt:Date.now()})}).catch(()=>{}),5000);pendingBol=null;showHome()}catch(err){
-if(btn){
-btn.disabled=false;
-btn.classList.remove('disabled');
-btn.innerText='Request BOL';
-}
-bolSending=false;const send=$('sendBolBtn');if(send){send.disabled=false;send.classList.remove('sending')}alert('Greška kod slanja BOL-a: '+err.message)}}
+async function sendBolAction(){if(bolSending)return;try{if(!pendingBol){return}bolSending=true;const send=$('sendBolBtn');if(send){send.disabled=true;send.classList.add('sending')}const payload={action:'bol_photo',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),image:pendingBol,time:new Date().toLocaleString()};await sendTelegram(payload);const ref=await addDoc(collection(db,'requests'),{companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type:'BOL',value:'PHOTO',status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolTelegram:true,messages:[{sender:user.name||user.username,text:'BOL photo sent to Telegram.',createdAt:Date.now()}]});await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user));setTimeout(()=>updateDoc(doc(db,'requests',ref.id),{status:'DONE',doneByName:'System',doneAt:serverTimestamp(),messages:arrayUnion({sender:'System',text:'BOL action auto closed.',createdAt:Date.now()})}).catch(()=>{}),5000);pendingBol=null;showHome()}catch(err){bolSending=false;const send=$('sendBolBtn');if(send){send.disabled=false;send.classList.remove('sending')}alert('Greška kod slanja BOL-a: '+err.message)}}
 function openShift(){hideAll();const grid=$('shiftGrid');grid.innerHTML='';grid.appendChild(choice('N','shift',()=>sendRequest('SHIFT','NOW')));const now=new Date();now.setMinutes(0,0,0);now.setHours(now.getHours()+1);for(let i=0;i<9;i++){const d=new Date(now.getTime()+i*3600000);let h=d.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;const label=h+ap;grid.appendChild(choice(label,'shift',()=>sendRequest('SHIFT',label)))}$('shiftPanel').style.display='block'}function openHours(){hideAll();const grid=$('hoursGrid');grid.innerHTML='';grid.appendChild(choice('B','hours',()=>sendRequest('HOURS','BREAK')));for(let i=1;i<=7;i++){const label=i+'+';grid.appendChild(choice(label,'hours',()=>sendRequest('HOURS',label)))}$('hoursPanel').style.display='block'}function choice(text,cls,fn){const b=document.createElement('button');b.className='choice '+cls;b.innerText=text;b.onclick=fn;return b}
 async function sendRequest(type,value){try{const existing=getCustomerTicket();const bolNotice=user?.bolRequired;const bolText=bolNotice?' BOL requested - customer sent BOL to Telegram.':'';const base={companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type,value,status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolSentByEmail:!!bolNotice};
 await sendTelegram({action:'new_request',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),type,value,time:new Date().toLocaleString()});
-if(existing){await updateDoc(doc(db,'requests',existing.id),{...base,bolImage:null,messages:arrayUnion({sender:user.name||user.username,text:type+' '+value+' new request in same ticket.'+bolText,createdAt:Date.now()})});if(user.bolRequired){await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user))}activeId=existing.id;localStorage.setItem('activeRequestId',activeId);pendingBol=null;refreshCustomer();return}const ref=await addDoc(collection(db,'requests'),{...base,messages:[{sender:user.name||user.username,text:type+' '+value+' request sent.'+bolText,createdAt:Date.now()}]});if(user.bolRequired){await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user))}activeId=ref.id;localStorage.setItem('activeRequestId',activeId);pendingBol=null;refreshCustomer()}catch(err){
-if(btn){
-btn.disabled=false;
-btn.classList.remove('disabled');
-btn.innerText='Request BOL';
-}
-alert('Greška kod slanja requesta: '+err.message)}}
+if(existing){await updateDoc(doc(db,'requests',existing.id),{...base,bolImage:null,messages:arrayUnion({sender:user.name||user.username,text:type+' '+value+' new request in same ticket.'+bolText,createdAt:Date.now()})});if(user.bolRequired){await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user))}activeId=existing.id;localStorage.setItem('activeRequestId',activeId);pendingBol=null;refreshCustomer();return}const ref=await addDoc(collection(db,'requests'),{...base,messages:[{sender:user.name||user.username,text:type+' '+value+' request sent.'+bolText,createdAt:Date.now()}]});if(user.bolRequired){await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user))}activeId=ref.id;localStorage.setItem('activeRequestId',activeId);pendingBol=null;refreshCustomer()}catch(err){alert('Greška kod slanja requesta: '+err.message)}}
 function renderAdmin(){if(user.role==='full_admin'){renderFullAdminPanel();return}const list=$('requestList');let visible=requests.filter(r=>sameCompany(r)).filter(r=>r.status!=='DONE');if(user.role==='admin')visible=visible.filter(r=>getAssignedCustomers(userKey(user),companyOf(user)).includes(r.customerUsername));const search=($('requestSearch')?.value||'').toLowerCase().trim();if(search)visible=visible.filter(r=>(r.customerName||'').toLowerCase().includes(search)||(r.customerUsername||'').toLowerCase().includes(search));$('count').innerText=visible.length;list.innerHTML='';const sorted=[...visible].sort((a,b)=>getDate(b.createdAt)-getDate(a.createdAt));if(!selectedId&&sorted[0])selectedId=sorted[0].id;if(selectedId&&!sorted.find(r=>r.id===selectedId))selectedId=sorted[0]?.id||null;if(!sorted.length){list.innerHTML='<div class="line">No active requests.</div>';if(user.role==='super_admin'||user.role==='admin'){renderSuperAdminHome();return}}sorted.forEach(r=>{const div=document.createElement('div');div.className='card '+(r.status==='NEW'?'new':'taken')+(r.id===selectedId?' sel':'');div.innerHTML=`<b>${esc(r.customerName)}</b><br>${esc(r.type)} ${esc(r.value)}<br>Status: ${esc(r.status)}<br>Taken by: ${esc(r.takenByName||'-')}`;div.onclick=()=>{selectedId=r.id;renderAdmin()};list.appendChild(div)});renderDetails()}
 function renderSuperAdminHome(){$('details').innerHTML=`<div class="tabs"><button class="btn blue" id="tabCustomers">Customers</button>${user.role==='super_admin'?'<button class="btn gray" id="tabUsers">Add / Manage Users</button>':''}</div><div id="tabContent"></div>`;$('tabCustomers').onclick=renderCustomerTab;if(user.role==='super_admin')$('tabUsers').onclick=renderUserTab;renderCustomerTab()}
 function renderFullAdminPanel(){hideAll();$('admin').style.display='block';$('roleBadge').innerText='full_admin';$('requestList').innerHTML='<div class="line">Companies</div>';$('count').innerText=companies.length;$('details').innerHTML=`<h2>Full Admin - Companies</h2><div class="msg"><h3>Add company</h3><input class="input" id="newCompanyName" placeholder="Company name"><input class="input" id="newCompanySuperUser" placeholder="Super admin username"><input class="input" id="newCompanySuperName" placeholder="Super admin name"><input class="input" id="newCompanySuperPass" placeholder="Super admin password"><button class="btn blue" id="createCompanyBtn">Create company</button><p id="companyStatus"></p></div><div class="hr"></div>${companies.map(c=>`<div class="msg"><b>${esc(c.name)}</b><br>Company ID: ${esc(c.id)}<br>Super Admin: ${esc(c.superAdminName||c.superAdminUsername||'-')} (${esc(c.superAdminUsername||'-')})<br><button class="btn blue" onclick="window.editCompany('${escAttr(c.id)}')">Edit</button><button class="btn redbtn" onclick="window.deleteCompany('${escAttr(c.id)}')">Delete</button></div>`).join('')}`;$('createCompanyBtn').onclick=createCompany}
 async function createCompany(){const name=$('newCompanyName').value.trim(),su=$('newCompanySuperUser').value.trim(),sn=$('newCompanySuperName').value.trim(),sp=$('newCompanySuperPass').value.trim()||'1234',st=$('companyStatus');if(!name||!su||!sn){st.className='error';st.innerText='Popuni company, super user i super name.';return}if(await usernameExists(su)){st.className='error';st.innerText='Username je zauzet: '+su;return}const id=slug(name);await setDoc(doc(db,'companies',id),{companyId:id,name,superAdminUsername:su,superAdminName:sn,createdAt:serverTimestamp()});await setDoc(doc(db,'users',su),{username:su,name:sn,password:sp,role:'super_admin',companyId:id,active:true});st.className='success';st.innerText='Kompanija dodata: '+name}
 window.editCompany=async function(id){const c=companies.find(x=>x.id===id);if(!c)return;editMode='company';editTarget=c;$('editTitle').innerText='Edit company';$('editName').value=c.name||'';$('editUsername').value=c.superAdminUsername||'';$('editPassword').value='';$('editRole').style.display='none';$('editModal').style.display='flex'};window.deleteCompany=async function(id){if(!confirm('Obrisati celu kompaniju i sve korisnike/requestove?'))return;for(const u of allUsers.filter(u=>companyOf(u)===id))await deleteDoc(doc(db,'users',userKey(u)));for(const r of requests.filter(r=>companyOf(r)===id))await deleteDoc(doc(db,'requests',r.id));await deleteDoc(doc(db,'companies',id));alert('Kompanija obrisana.')};
-function renderCustomerProfile(customerUsername){const customer=allUsers.find(u=>userKey(u)===customerUsername);const lastReq=requests.filter(r=>r.customerUsername===customerUsername&&companyOf(r)===companyOf(user)).sort((a,b)=>getDate(b.createdAt)-getDate(a.createdAt))[0];const msgs=lastReq&&Array.isArray(lastReq.messages)?lastReq.messages:[];$('details').innerHTML=`<div class="tabs"><button class="btn gray" id="backToCustomersBtn">← Back</button></div><h2>${esc(userLabel(customer)||customerUsername)}</h2><div class="line"><b>Username:</b> ${esc(customerUsername)}</div><div class="line"><b>Status:</b> ${lastReq?esc(lastReq.status):'No request in last 10 days'}</div><div class="actions"><button class="btn redbtn" id="bolCustomerBtn">Request BOL</button></div><div class="chat" id="chatBox">${msgs.map((m,i)=>`<div class="msg ${i===msgs.length-1?'lastMsg':''}"><b>${esc(m.sender)}:</b> ${esc(m.text)} ${m.bolImage?`<button class="inlineImageIcon" data-img-index="${getImageIndex(lastReq,m.bolImage)}">🖼️</button>`:''}<span class="mini">(${formatDate(m.createdAt)})</span></div>`).join('')||'<div class="line">No chat in last 10 days.</div>'}</div>`;$('backToCustomersBtn').onclick=()=>{selectedId=null;renderSuperAdminHome();};$('bolCustomerBtn').onclick=async()=>{await updateDoc(doc(db,'users',customerUsername),{bolRequired:true});await sendTelegram({action:'bol_request',customerName:userLabel(customer)||customerUsername,username:customerUsername,company:getCompanyName(companyOf(user)),type:'BOL',value:'REQUEST',time:new Date().toLocaleString()});alert('Customer će dobiti BOL camera request: '+(userLabel(customer)||customerUsername));};document.querySelectorAll('.inlineImageIcon').forEach(btn=>btn.onclick=()=>{if(lastReq){previewImages=getRequestImages(lastReq);previewIndex=Number(btn.dataset.imgIndex||0);openImagePreview(previewImages[previewIndex])}})}
+function renderCustomerProfile(customerUsername){const customer=allUsers.find(u=>userKey(u)===customerUsername);const lastReq=requests.filter(r=>r.customerUsername===customerUsername&&companyOf(r)===companyOf(user)).sort((a,b)=>getDate(b.createdAt)-getDate(a.createdAt))[0];const msgs=lastReq&&Array.isArray(lastReq.messages)?lastReq.messages:[];$('details').innerHTML=`<div class="tabs"><button class="btn gray" id="backToCustomersBtn">← Back</button></div><h2>${esc(userLabel(customer)||customerUsername)}</h2><div class="line"><b>Username:</b> ${esc(customerUsername)}</div><div class="line"><b>Status:</b> ${lastReq?esc(lastReq.status):'No request in last 10 days'}</div><div class="actions"><button class="btn redbtn" id="bolCustomerBtn" ${customer?.bolRequired?'disabled':''}>${customer?.bolRequired?'BOL Requested':'Request BOL'}</button></div><div class="chat" id="chatBox">${msgs.map((m,i)=>`<div class="msg ${i===msgs.length-1?'lastMsg':''}"><b>${esc(m.sender)}:</b> ${esc(m.text)} ${m.bolImage?`<button class="inlineImageIcon" data-img-index="${getImageIndex(lastReq,m.bolImage)}">🖼️</button>`:''}<span class="mini">(${formatDate(m.createdAt)})</span></div>`).join('')||'<div class="line">No chat in last 10 days.</div>'}</div>`;$('backToCustomersBtn').onclick=()=>{selectedId=null;renderSuperAdminHome();};$('bolCustomerBtn').onclick=async()=>{await updateDoc(doc(db,'users',customerUsername),{bolRequired:true});await sendTelegram({action:'bol_request',customerName:userLabel(customer)||customerUsername,username:customerUsername,company:getCompanyName(companyOf(user)),type:'BOL',value:'REQUEST',time:new Date().toLocaleString()});alert('Customer će dobiti BOL camera request: '+(userLabel(customer)||customerUsername));};document.querySelectorAll('.inlineImageIcon').forEach(btn=>btn.onclick=()=>{if(lastReq){previewImages=getRequestImages(lastReq);previewIndex=Number(btn.dataset.imgIndex||0);openImagePreview(previewImages[previewIndex])}})}
 function renderCustomerTab(){$('tabContent').innerHTML=`<h2>Customers</h2><input class="input" id="customerSearchBox" placeholder="Search customer..."><div id="customerListBox"></div>`;$('customerSearchBox').oninput=renderCustomerListBox;renderCustomerListBox()}function getCustomerLastRequestInfo(customerUsername){const last=requests.filter(r=>r.customerUsername===customerUsername&&companyOf(r)===companyOf(user)).sort((a,b)=>getDate(b.createdAt)-getDate(a.createdAt))[0];return last?{time:getDate(last.createdAt).getTime(),label:(last.type||'')+' '+(last.value||''),status:last.status||''}:{time:0,label:'No request',status:''}}function renderCustomerListBox(){const box=$('customerListBox');if(!box)return;const q=($('customerSearchBox')?.value||'').toLowerCase().trim();const customers=allUsers.filter(u=>u.role==='customer'&&companyOf(u)===companyOf(user)).filter(c=>!q||(userLabel(c)+' '+userKey(c)).toLowerCase().includes(q)).map(c=>({...c,_last:getCustomerLastRequestInfo(userKey(c))})).sort((a,b)=>{if(b._last.time!==a._last.time)return b._last.time-a._last.time;return userLabel(a).localeCompare(userLabel(b))});box.innerHTML=customers.map(c=>{const key=userKey(c),last=c._last;const lastLine=last.time?`${esc(last.label)} / ${esc(last.status)} / ${formatDate(last.time)}`:'No request';return`<div class="msg" style="cursor:pointer" onclick="window.openCustomerChat('${escAttr(key)}')"><b>${esc(userLabel(c))}</b><br><span class="mini">${esc(key)}</span><br><span class="mini">${lastLine}</span></div>`}).join('')||'<div class="line">No customers found.</div>'}window.openCustomerChat=customerUsername=>renderCustomerProfile(customerUsername);
 function renderDetails(){const r=requests.find(x=>x.id===selectedId);if(!r){if(user.role==='super_admin'||user.role==='admin'){renderSuperAdminHome();return}$('details').innerHTML='Select request.';return}const isSuper=user.role==='super_admin';$('details').innerHTML=`<div class="tabs"><button class="btn blue" id="tabChat">Chat</button><button class="btn gray" id="tabCustomers">Customers</button>${isSuper?'<button class="btn gray" id="tabUsers">Add / Manage Users</button>':''}</div><div id="tabContent"></div>`;$('tabChat').onclick=()=>renderChatTab(r);$('tabCustomers').onclick=renderCustomerTab;if(isSuper)$('tabUsers').onclick=renderUserTab;renderChatTab(r)}
 function renderChatTab(r){const msgs=Array.isArray(r.messages)?r.messages:[];const isSuper=user.role==='super_admin';const isTakenByOther=r.status==='TAKEN'&&r.takenByUsername&&r.takenByUsername!==user.username;const canWork=isSuper&&(r.status==='NEW'||(r.status==='TAKEN'&&r.takenByUsername===user.username));const takeDisabled=!isSuper||r.status!=='NEW';const doneDisabled=!isSuper||r.status==='DONE'||isTakenByOther;$('tabContent').innerHTML=`<h2>${esc(r.type)} ${esc(r.value)}</h2><div class="line"><b>Customer:</b> ${esc(r.customerName)}</div><div class="line"><b>Status:</b> ${esc(r.status)}</div><div class="line"><b>Created:</b> ${formatDate(r.createdAt)}</div><div class="line"><b>Operator:</b> ${esc(r.takenByName||'-')}</div><div class="actions"><button class="btn blue ${takeDisabled?'disabled':''}" id="takeBtn" ${takeDisabled?'disabled':''}>Preuzmi</button><button class="btn green ${doneDisabled?'disabled':''}" id="doneBtn" ${doneDisabled?'disabled':''}>Završeno</button><button class="btn redbtn" id="bolReqBtn">Request BOL</button></div><div class="chat" id="chatBox">${msgs.map((m,i)=>`<div class="msg ${i===msgs.length-1?'lastMsg':''}"><b>${esc(m.sender)}:</b> ${esc(m.text)} ${m.bolImage?`<button class="inlineImageIcon" data-img-index="${getImageIndex(r,m.bolImage)}">🖼️</button>`:''}<span class="mini">(${formatDate(m.createdAt)})</span></div>`).join('')}</div><div style="display:flex;gap:8px"><input class="input" id="chatInput" placeholder="Message" ${!canWork?'disabled':''}><button class="btn blue ${!canWork?'disabled':''}" id="sendMsgBtn" ${!canWork?'disabled':''}>Send</button></div>`;document.querySelectorAll('.inlineImageIcon').forEach(btn=>btn.onclick=()=>openImagePreviewByIndex(Number(btn.dataset.imgIndex||0)));$('takeBtn').onclick=()=>takeRequest(r.id);$('doneBtn').onclick=()=>doneRequest(r.id);$('bolReqBtn').onclick=()=>requireBol(r);$('sendMsgBtn').onclick=()=>{if(canWork)sendMsg(r.id)};$('chatInput').onkeydown=e=>{if(e.key==='Enter'&&canWork)sendMsg(r.id)};setTimeout(()=>{const c=$('chatBox');if(c)c.scrollTop=c.scrollHeight},50)}
@@ -445,12 +421,6 @@ async function takeRequest(id){
     renderDetails();
 
   }catch(err){
-if(btn){
-btn.disabled=false;
-btn.classList.remove('disabled');
-btn.innerText='Request BOL';
-}
-
     alert('Greška kod Preuzmi: '+err.message);
     if(btn){btn.disabled=false;btn.classList.remove('disabled');btn.innerText='Preuzmi';}
   }
@@ -505,18 +475,82 @@ async function doneRequest(id){
     renderAdmin();
 
   }catch(err){
-if(btn){
-btn.disabled=false;
-btn.classList.remove('disabled');
-btn.innerText='Request BOL';
-}
-
     alert('Greška kod Završeno: '+err.message);
     if(btn){btn.disabled=false;btn.classList.remove('disabled');btn.innerText='Završeno';}
   }
 }
 
-async function requireBol(r){if(!r.customerUsername){alert('No customer username.');return}await updateDoc(doc(db,'users',r.customerUsername),{bolRequired:true});await sendTelegram({action:'bol_request',customerName:r.customerName,username:r.customerUsername,company:getCompanyName(companyOf(r)),type:'BOL',value:'REQUEST',time:new Date().toLocaleString()});await updateDoc(doc(db,'requests',r.id),{messages:arrayUnion({sender:'System',text:'BOL requested. Customer will receive camera screen.',createdAt:Date.now()})});alert('Customer će dobiti BOL camera request: '+r.customerName)}async function sendMsg(id){const input=$('chatInput'),text=(input?.value||'').trim();if(!text)return;await updateDoc(doc(db,'requests',id),{messages:arrayUnion({sender:user.name||user.username,text,createdAt:Date.now()})});input.value=''}
+async function requireBol(r){
+  const btn = event?.target;
+  if(btn && btn.disabled) return;
+
+  if(!r.customerUsername){
+    alert('No customer username.');
+    return;
+  }
+
+  if(btn){
+    btn.disabled = true;
+    btn.classList.add('disabled');
+    btn.innerText = 'Sending...';
+  }
+
+  try{
+    const userRef = doc(db,'users',r.customerUsername);
+    const userSnap = await getDoc(userRef);
+
+    if(userSnap.exists() && userSnap.data().bolRequired){
+      if(btn){
+        btn.disabled = true;
+        btn.classList.add('disabled');
+        btn.innerText = 'BOL Requested';
+      }
+      alert('BOL je već tražen za ovog customera.');
+      return;
+    }
+
+    await updateDoc(userRef,{bolRequired:true,bolRequestedAt:serverTimestamp()});
+
+    await sendTelegram({
+      action:'bol_request',
+      customerName:r.customerName,
+      username:r.customerUsername,
+      company:getCompanyName(companyOf(r)),
+      type:'BOL',
+      value:'REQUEST',
+      time:new Date().toLocaleString()
+    });
+
+    await updateDoc(doc(db,'requests',r.id),{
+      messages:arrayUnion({
+        sender:'System',
+        text:'BOL requested. Customer will receive camera screen.',
+        createdAt:Date.now()
+      })
+    });
+
+    const localCustomer = allUsers.find(u=>u.username===r.customerUsername);
+    if(localCustomer) localCustomer.bolRequired = true;
+
+    if(btn){
+      btn.disabled = true;
+      btn.classList.add('disabled');
+      btn.innerText = 'BOL Requested';
+    }
+
+    alert('Customer će dobiti BOL camera request: '+r.customerName);
+    renderAdmin();
+    renderDetails();
+
+  }catch(err){
+    if(btn){
+      btn.disabled = false;
+      btn.classList.remove('disabled');
+      btn.innerText = 'Request BOL';
+    }
+    alert('Greška kod Request BOL: '+err.message);
+  }
+}async function sendMsg(id){const input=$('chatInput'),text=(input?.value||'').trim();if(!text)return;await updateDoc(doc(db,'requests',id),{messages:arrayUnion({sender:user.name||user.username,text,createdAt:Date.now()})});input.value=''}
 async function addUser(){const username=$('newUsername').value.trim(),name=$('newName').value.trim(),password=$('newPassword').value.trim(),role=$('newRole').value,status=$('addUserStatus');if(!username||!name){status.className='error';status.innerText='Popuni username i name.';return}if(await usernameExists(username)){status.className='error';status.innerText='Username je zauzet: '+username;return}const data={username,name,role,active:true,companyId:companyOf(user)};if(role!=='customer')data.password=password||'1234';if(role==='customer')data.bolRequired=false;if(role==='admin')data.assignedCustomers=[];await setDoc(doc(db,'users',username),data);status.className='success';status.innerText='User dodat: '+username;$('newUsername').value='';$('newName').value='';$('newPassword').value=''}window.deleteUserByUsername=async username=>{const u=allUsers.find(x=>userKey(x)===username);if(u?.role==='super_admin'){alert('Super Admin ne može da se obriše.');return}if(!confirm('Da li sigurno brišeš usera: '+username+'?'))return;await deleteDoc(doc(db,'users',username));alert('User obrisan: '+username)};window.editUserByUsername=function(username){const u=allUsers.find(x=>userKey(x)===username);if(!u)return;editMode='user';editTarget=u;$('editTitle').innerText='Edit user';$('editName').value=u.name||'';$('editUsername').value=userKey(u);$('editPassword').value=u.password||'';$('editRole').style.display='block';$('editRole').value=u.role||'customer';$('editStatus').innerText='';$('editModal').style.display='flex'};
 function closeEditModal(){$('editModal').style.display='none';editMode=null;editTarget=null;$('editRole').style.display='block'}async function saveEditModal(){const name=$('editName').value.trim(),username=$('editUsername').value.trim(),password=$('editPassword').value.trim(),role=$('editRole').value;if(!name||!username){$('editStatus').className='error';$('editStatus').innerText='Name i username su obavezni.';return}if(editMode==='user'){const oldKey=userKey(editTarget);if(username!==oldKey&&await usernameExists(username)){$('editStatus').className='error';$('editStatus').innerText='Username je zauzet: '+username;return}const data={username,name,role,active:true,companyId:companyOf(editTarget)};if(role!=='customer')data.password=password||'1234';if(role==='customer')data.bolRequired=!!editTarget.bolRequired;if(role==='admin')data.assignedCustomers=Array.isArray(editTarget.assignedCustomers)?editTarget.assignedCustomers:[];if(username!==oldKey){await setDoc(doc(db,'users',username),data);await deleteDoc(doc(db,'users',oldKey))}else await updateDoc(doc(db,'users',oldKey),data);closeEditModal()}if(editMode==='company'){const c=editTarget,oldSuper=c.superAdminUsername,newSuper=username;if(newSuper!==oldSuper&&await usernameExists(newSuper)){$('editStatus').className='error';$('editStatus').innerText='Username je zauzet: '+newSuper;return}await updateDoc(doc(db,'companies',c.id),{name,superAdminUsername:newSuper,superAdminName:name});if(oldSuper&&oldSuper!==newSuper)await deleteDoc(doc(db,'users',oldSuper));await setDoc(doc(db,'users',newSuper),{username:newSuper,name,password:password||'1234',role:'super_admin',companyId:c.id,active:true});closeEditModal()}}
 function getRequestImages(r){const imgs=[];if(r?.bolImage)imgs.push(r.bolImage);(Array.isArray(r?.messages)?r.messages:[]).forEach(m=>{if(m.bolImage&&!imgs.includes(m.bolImage))imgs.push(m.bolImage)});return imgs}function getImageIndex(r,src){const arr=getRequestImages(r);const i=arr.indexOf(src);return i>=0?i:0}function openImagePreviewByIndex(index){const r=requests.find(x=>x.id===selectedId);previewImages=r?getRequestImages(r):[];if(!previewImages.length)return;previewIndex=Math.max(0,Math.min(index,previewImages.length-1));openImagePreview(previewImages[previewIndex])}function resetImageView(){const img=$('modalImage');currentZoom=1;img.style.transform='scale(1)';img.style.width='auto';img.style.maxWidth='92vw';img.style.maxHeight='82vh';const area=document.querySelector('.imageArea');if(area){area.scrollTop=0;area.scrollLeft=0}}function openImagePreview(src){currentPreviewImage=src;const img=$('modalImage');img.onload=()=>{resetImageView()};img.src=src;resetImageView();$('imageModal').style.display='flex';updateImageCounter()}function closeImagePreview(){$('imageModal').style.display='none';$('modalImage').src=''}function zoomInImage(){currentZoom=Math.min(currentZoom+0.2,3);$('modalImage').style.transform='scale('+currentZoom+')';const area=document.querySelector('.imageArea');if(area)area.scrollTop=0}function zoomOutImage(){currentZoom=Math.max(currentZoom-0.2,0.5);$('modalImage').style.transform='scale('+currentZoom+')';const area=document.querySelector('.imageArea');if(area)area.scrollTop=0}function prevImage(){if(!previewImages.length)return;previewIndex=previewIndex<=0?previewImages.length-1:previewIndex-1;openImagePreview(previewImages[previewIndex])}function nextImage(){if(!previewImages.length)return;previewIndex=previewIndex>=previewImages.length-1?0:previewIndex+1;openImagePreview(previewImages[previewIndex])}function updateImageCounter(){$('imageCounter').innerText=previewImages.length?(previewIndex+1)+' / '+previewImages.length:''}
@@ -524,6 +558,7 @@ async function usernameExists(username){const snap=await getDoc(doc(db,'users',u
 </script>
 
 
-<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR TAKE DONE FIX v22</div>
+
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR BOL TRUE LOCK v23</div>
 </body>
 </html>
