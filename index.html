@@ -55,6 +55,117 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 .searchCustomerItem{padding:10px 12px;border-bottom:1px solid #1f2937;cursor:pointer}
 .searchCustomerItem:hover{background:#111827}
 @media(max-width:850px){.dashboardSearches{grid-template-columns:1fr}.customerCompactRow{grid-template-columns:1fr}}
+
+/* YR MOBILE FIXED DETAILS v30 */
+@media(max-width:450px){
+  body{
+    padding-bottom:360px;
+  }
+
+  .admin{
+    padding:12px;
+  }
+
+  .layout{
+    display:block!important;
+  }
+
+  .layout > .box:first-child{
+    margin-bottom:14px;
+  }
+
+  .layout > .box:nth-child(2){
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index:900;
+    max-height:360px;
+    border-radius:22px 22px 0 0;
+    border-left:none;
+    border-right:none;
+    border-bottom:none;
+    box-shadow:0 -8px 28px rgba(0,0,0,.45);
+    overflow:auto;
+    background:#020617;
+  }
+
+  .layout > .box:nth-child(2)::before{
+    content:"";
+    display:block;
+    width:56px;
+    height:6px;
+    border-radius:20px;
+    background:#64748b;
+    margin:10px auto 4px auto;
+    opacity:.85;
+  }
+
+  .layout > .box:nth-child(2) .boxHead{
+    display:none;
+  }
+
+  .layout > .box:nth-child(2) .body{
+    padding:14px 16px 18px 16px;
+  }
+
+  #details h2{
+    font-size:30px;
+    margin-bottom:12px;
+  }
+
+  #details .line{
+    font-size:15px!important;
+    margin:8px 0;
+  }
+
+  #details .actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:14px 0 4px 0;
+  }
+
+  #details .actions .btn{
+    font-size:14px;
+    padding:10px 12px;
+    border-radius:10px;
+  }
+
+  #details .chat,
+  #details #chatBox,
+  #details #chatInput,
+  #details #sendMsgBtn,
+  #details .chat + div{
+    display:none!important;
+  }
+
+  #details .dashboardSearches,
+  #details .searchResultBox{
+    display:none!important;
+  }
+
+  #details .tabs{
+    position:absolute;
+    right:14px;
+    top:16px;
+    margin:0;
+  }
+
+  #details .tabs .btn{
+    padding:10px 12px;
+  }
+
+  .card.sel{
+    border-color:#38bdf8;
+  }
+
+  .list{
+    max-height:none!important;
+    padding-bottom:12px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -719,6 +830,7 @@ async function usernameExists(username){const snap=await getDoc(doc(db,'users',u
 
 
 
-<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR SETTINGS NAV FIX v29</div>
+
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR MOBILE FIXED DETAILS v30</div>
 </body>
 </html>
