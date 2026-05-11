@@ -68,15 +68,39 @@ body{
 padding-bottom:0!important;
 }
 
+/* HEADER */
 .header{
 height:10vh;
 min-height:72px;
 padding:10px 14px;
 display:flex;
+flex-direction:row!important;
 align-items:center;
 justify-content:space-between;
+gap:10px;
 }
 
+.header > div:first-child{
+display:flex;
+align-items:center;
+justify-content:flex-start;
+gap:10px;
+}
+
+.header .btn{
+margin-left:auto;
+}
+
+.header h1{
+font-size:22px;
+line-height:22px;
+}
+
+#userInfo{
+display:none!important;
+}
+
+/* CUSTOMER HOME */
 .home{
 height:90vh;
 min-height:90vh;
@@ -117,6 +141,7 @@ margin-top:10px;
 opacity:.85;
 }
 
+/* PANELS */
 .panel,
 .waiting,
 .working,
@@ -127,6 +152,7 @@ min-height:90vh;
 overflow:auto;
 }
 
+/* REQUEST CARDS */
 .msg{
 font-size:14px;
 }
@@ -151,12 +177,16 @@ border-radius:6px;
 padding:6px 7px;
 }
 
-/* DONJI DETAILS */
+/* MOBILE DETAILS PANEL */
 .layout{
 display:block!important;
 }
 
-.layout>.box:nth-child(2){
+.layout > .box:first-child{
+margin-bottom:14px;
+}
+
+.layout > .box:nth-child(2){
 position:fixed;
 left:0;
 right:0;
@@ -164,26 +194,90 @@ bottom:0;
 z-index:900;
 max-height:360px;
 border-radius:22px 22px 0 0;
+border-left:none;
+border-right:none;
+border-bottom:none;
+box-shadow:0 -8px 28px rgba(0,0,0,.45);
 overflow:auto;
 background:#020617;
 }
 
-.layout>.box:nth-child(2) .boxHead{
+.layout > .box:nth-child(2)::before{
+content:"";
+display:block;
+width:56px;
+height:6px;
+border-radius:20px;
+background:#64748b;
+margin:10px auto 4px auto;
+opacity:.85;
+}
+
+.layout > .box:nth-child(2) .boxHead{
 display:none;
+}
+
+.layout > .box:nth-child(2) .body{
+padding:14px 16px 18px 16px;
+}
+
+#details h2{
+font-size:30px;
+margin-bottom:12px;
+}
+
+#details .line{
+font-size:15px!important;
+margin:8px 0;
+}
+
+#details .actions{
+display:flex;
+gap:8px;
+flex-wrap:wrap;
+margin:14px 0 4px 0;
+}
+
+#details .actions .btn{
+font-size:14px;
+padding:10px 12px;
+border-radius:10px;
 }
 
 #details .chat,
 #details #chatBox,
 #details #chatInput,
 #details #sendMsgBtn,
-#details .chat + div,
+#details .chat + div{
+display:none!important;
+}
+
 #details .dashboardSearches,
 #details .searchResultBox{
 display:none!important;
 }
 
+#details .tabs{
+position:absolute;
+right:14px;
+top:16px;
+margin:0;
 }
 
+#details .tabs .btn{
+padding:10px 12px;
+}
+
+.card.sel{
+border-color:#38bdf8;
+}
+
+.list{
+max-height:none!important;
+padding-bottom:12px;
+}
+
+}
 </style>
 </head>
 <body>
