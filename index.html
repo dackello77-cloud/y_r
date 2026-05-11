@@ -58,112 +58,130 @@ button:disabled{opacity:.45;cursor:not-allowed!important}
 
 /* YR MOBILE FIXED DETAILS v30 */
 @media(max-width:450px){
-  body{
-    padding-bottom:360px;
-  }
 
-  .admin{
-    padding:12px;
-  }
+html,body{
+height:100%;
+overflow:hidden;
+}
 
-  .layout{
-    display:block!important;
-  }
+body{
+padding-bottom:0!important;
+}
 
-  .layout > .box:first-child{
-    margin-bottom:14px;
-  }
+.header{
+height:10vh;
+min-height:72px;
+padding:10px 14px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+}
 
-  .layout > .box:nth-child(2){
-    position:fixed;
-    left:0;
-    right:0;
-    bottom:0;
-    z-index:900;
-    max-height:360px;
-    border-radius:22px 22px 0 0;
-    border-left:none;
-    border-right:none;
-    border-bottom:none;
-    box-shadow:0 -8px 28px rgba(0,0,0,.45);
-    overflow:auto;
-    background:#020617;
-  }
+.home{
+height:90vh;
+min-height:90vh;
+display:grid;
+grid-template-columns:1fr;
+grid-template-rows:45vh 45vh;
+}
 
-  .layout > .box:nth-child(2)::before{
-    content:"";
-    display:block;
-    width:56px;
-    height:6px;
-    border-radius:20px;
-    background:#64748b;
-    margin:10px auto 4px auto;
-    opacity:.85;
-  }
+.big{
+height:45vh;
+min-height:45vh;
+font-size:42px;
+font-weight:bold;
+}
 
-  .layout > .box:nth-child(2) .boxHead{
-    display:none;
-  }
+.shift{
+background:#facc15;
+color:#111827;
+}
 
-  .layout > .box:nth-child(2) .body{
-    padding:14px 16px 18px 16px;
-  }
+.hours{
+background:#dc2626;
+color:white;
+}
 
-  #details h2{
-    font-size:30px;
-    margin-bottom:12px;
-  }
+.big div{
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+height:100%;
+width:100%;
+}
 
-  #details .line{
-    font-size:15px!important;
-    margin:8px 0;
-  }
+.big small{
+font-size:18px;
+margin-top:10px;
+opacity:.85;
+}
 
-  #details .actions{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    margin:14px 0 4px 0;
-  }
+.panel,
+.waiting,
+.working,
+.admin,
+.settingsPage{
+height:90vh;
+min-height:90vh;
+overflow:auto;
+}
 
-  #details .actions .btn{
-    font-size:14px;
-    padding:10px 12px;
-    border-radius:10px;
-  }
+.msg{
+font-size:14px;
+}
 
-  #details .chat,
-  #details #chatBox,
-  #details #chatInput,
-  #details #sendMsgBtn,
-  #details .chat + div{
-    display:none!important;
-  }
+.mini{
+font-size:10px;
+}
 
-  #details .dashboardSearches,
-  #details .searchResultBox{
-    display:none!important;
-  }
+.card{
+line-height:25px;
+height:58px;
+overflow:hidden;
+padding:4px 0 0 10px;
+}
 
-  #details .tabs{
-    position:absolute;
-    right:14px;
-    top:16px;
-    margin:0;
-  }
+.line{
+font-size:12px!important;
+}
 
-  #details .tabs .btn{
-    padding:10px 12px;
-  }
+.btn{
+border-radius:6px;
+padding:6px 7px;
+}
 
-  .card.sel{
-    border-color:#38bdf8;
-  }
+/* DONJI DETAILS */
+.layout{
+display:block!important;
+}
 
-  .list{
-    max-height:none!important;
-    padding-bottom:12px;
-  }
+.layout>.box:nth-child(2){
+position:fixed;
+left:0;
+right:0;
+bottom:0;
+z-index:900;
+max-height:360px;
+border-radius:22px 22px 0 0;
+overflow:auto;
+background:#020617;
+}
+
+.layout>.box:nth-child(2) .boxHead{
+display:none;
+}
+
+#details .chat,
+#details #chatBox,
+#details #chatInput,
+#details #sendMsgBtn,
+#details .chat + div,
+#details .dashboardSearches,
+#details .searchResultBox{
+display:none!important;
+}
+
 }
 
 </style>
