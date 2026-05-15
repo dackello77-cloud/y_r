@@ -674,10 +674,65 @@ function readBol(e){
   reader.readAsDataURL(file);
 }
 async function sendBolAction(){if(bolSending)return;try{if(!pendingBol){return}bolSending=true;const send=$('sendBolBtn');if(send){send.disabled=true;send.classList.add('sending')}const payload={action:'bol_photo',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),image:pendingBol,time:new Date().toLocaleString()};await sendTelegram(payload);const ref=await addDoc(collection(db,'requests'),{companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type:'BOL',value:'PHOTO',status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolTelegram:true,messages:[{sender:user.name||user.username,text:'BOL photo sent to Telegram.',createdAt:Date.now()}]});await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user));setTimeout(()=>updateDoc(doc(db,'requests',ref.id),{status:'DONE',doneByName:'System',doneAt:serverTimestamp(),messages:arrayUnion({sender:'System',text:'BOL action auto closed.',createdAt:Date.now()})}).catch(()=>{}),5000);pendingBol=null;setTimeout(()=>refreshCustomer(),700)}catch(err){bolSending=false;const send=$('sendBolBtn');if(send){send.disabled=false;send.classList.remove('sending')}alert('Greška kod slanja BOL-a: '+err.message)}}
+
+function parseHourLabelToDate(label){
+  if(!label || label==='NOW') return null;
+  const match=String(label).match(/^(\d{1,2})(AM|PM)$/i);
+  if(!match) return null;
+  let hour=Number(match[1]);
+  const ap=match[2].toUpperCase();
+  if(ap==='PM' && hour!==12) hour+=12;
+  if(ap==='AM' && hour===12) hour=0;
+
+  const now=new Date();
+  const target=new Date(now);
+  target.setMinutes(0,0,0);
+  target.setHours(hour);
+
+  // dugmad su za naredne sate; ako je taj sat već prošao, prebaci na sutra
+  if(target.getTime() < now.getTime()-60000){
+    target.setDate(target.getDate()+1);
+  }
+  return target;
+}
+
+function formatCentralTimeFromDate(date){
+  if(!date) return '';
+  const parts=new Intl.DateTimeFormat('en-US',{
+    timeZone:'America/Chicago',
+    hour:'numeric',
+    hour12:true
+  }).formatToParts(date);
+  const hour=parts.find(p=>p.type==='hour')?.value || '';
+  const dayPeriod=parts.find(p=>p.type==='dayPeriod')?.value || '';
+  return (hour+dayPeriod).replace(/\s/g,'').toUpperCase();
+}
+
+function buildPortalValue(type,value){
+  if(type!=='SHIFT') return value;
+  if(value==='NOW') return 'NOW';
+  const date=parseHourLabelToDate(value);
+  const central=formatCentralTimeFromDate(date);
+  return central || value;
+}
+
+function requestTitle(r){
+  return (r.type||'')+' '+(r.portalValue||r.value||'');
+}
+
+function requestSearchText(r){
+  return [
+    r.customerName||'',
+    r.customerUsername||'',
+    r.type||'',
+    r.value||'',
+    r.portalValue||''
+  ].join(' ').toLowerCase();
+}
 function openShift(){hideAll();const grid=$('shiftGrid');grid.innerHTML='';grid.appendChild(choice('N','shift',()=>sendRequest('SHIFT','NOW')));const now=new Date();now.setMinutes(0,0,0);now.setHours(now.getHours()+1);for(let i=0;i<9;i++){const d=new Date(now.getTime()+i*3600000);let h=d.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;const label=h+ap;grid.appendChild(choice(label,'shift',()=>sendRequest('SHIFT',label)))}$('shiftPanel').style.display='block'}function openHours(){hideAll();const grid=$('hoursGrid');grid.innerHTML='';grid.appendChild(choice('B','hours',()=>sendRequest('HOURS','BREAK')));for(let i=1;i<=7;i++){const label=i+'+';grid.appendChild(choice(label,'hours',()=>sendRequest('HOURS',label)))}$('hoursPanel').style.display='block'}function choice(text,cls,fn){const b=document.createElement('button');b.className='choice '+cls;b.innerText=text;b.onclick=fn;return b}
-async function sendRequest(type,value){try{const existing=getCustomerTicket();const bolNotice=user?.bolRequired;const bolText=bolNotice?' BOL requested - customer sent BOL to Telegram.':'';const base={companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type,value,status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolSentByEmail:!!bolNotice};
-await sendTelegram({action:'new_request',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),type,value,time:new Date().toLocaleString()});
-if(existing){await updateDoc(doc(db,'requests',existing.id),{...base,bolImage:null,messages:arrayUnion({sender:user.name||user.username,text:type+' '+value+' new request in same ticket.'+bolText,createdAt:Date.now()})});if(user.bolRequired){await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user))}activeId=existing.id;localStorage.setItem('activeRequestId',activeId);pendingBol=null;refreshCustomer();return}const ref=await addDoc(collection(db,'requests'),{...base,messages:[{sender:user.name||user.username,text:type+' '+value+' request sent.'+bolText,createdAt:Date.now()}]});if(user.bolRequired){await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user))}activeId=ref.id;localStorage.setItem('activeRequestId',activeId);pendingBol=null;setTimeout(()=>refreshCustomer(),700)}catch(err){alert('Greška kod slanja requesta: '+err.message)}}
+async function sendRequest(type,value){try{const existing=getCustomerTicket();const bolNotice=user?.bolRequired;const bolText=bolNotice?' BOL requested - customer sent BOL to Telegram.':'';const portalValue=buildPortalValue(type,value);const base={companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type,value,customerLocalValue:value,customerTimeZone:Intl.DateTimeFormat().resolvedOptions().timeZone||'',portalValue,status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolSentByEmail:!!bolNotice};
+await sendTelegram({action:'new_request',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),type,value:portalValue,time:new Date().toLocaleString()});
+if(existing){await updateDoc(doc(db,'requests',existing.id),{...base,bolImage:null,messages:arrayUnion({sender:user.name||user.username,text:type+' '+portalValue+' new request in same ticket.'+bolText,createdAt:Date.now()})});if(user.bolRequired){await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user))}activeId=existing.id;localStorage.setItem('activeRequestId',activeId);pendingBol=null;refreshCustomer();return}const ref=await addDoc(collection(db,'requests'),{...base,messages:[{sender:user.name||user.username,text:type+' '+portalValue+' request sent.'+bolText,createdAt:Date.now()}]});if(user.bolRequired){await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user))}activeId=ref.id;localStorage.setItem('activeRequestId',activeId);pendingBol=null;setTimeout(()=>refreshCustomer(),700)}catch(err){alert('Greška kod slanja requesta: '+err.message)}}
 
 function openSettingsPage(){
 hideAll();
@@ -731,7 +786,7 @@ if(!customer){alert('Customer nije pronađen.');return}
 const customerUsername=userKey(customer);
 const reqs=requests.filter(r=>r.customerUsername===customerUsername&&companyOf(r)===companyOf(customer)).sort((a,b)=>getDate(b.createdAt)-getDate(a.createdAt));
 const lastReq=reqs[0]||null;
-$('settingsInner').innerHTML=`<div class="tabs"><button class="btn gray" id="backCustomersList">← Customers</button></div><h2>${esc(userLabel(customer)||customerUsername)}</h2><div class="line"><b>Username:</b> ${esc(customerUsername)}</div><div class="line"><b>Company:</b> ${esc(getCompanyName(companyOf(customer)))}</div><div class="line"><b>BOL:</b> ${customer.bolRequired?'Requested':'Not requested'}</div><div class="actions"><button class="btn redbtn" id="profileBolBtn">${customer.bolRequired?'BOL Requested':'Request BOL'}</button><button class="btn blue" onclick="editUserByUsername('${escAttr(customerUsername)}')">Edit</button><button class="btn redbtn" onclick="deleteUserByUsername('${escAttr(customerUsername)}')">Delete</button></div><h3>Last requests</h3><div class="chat">${reqs.slice(0,10).map(r=>`<div class="msg"><b>${esc(r.type)} ${esc(r.value)}</b> <span class="mini">${esc(r.status)} | ${formatDate(r.createdAt)}</span></div>`).join('')||'<div class="line">No requests.</div>'}</div>`;
+$('settingsInner').innerHTML=`<div class="tabs"><button class="btn gray" id="backCustomersList">← Customers</button></div><h2>${esc(userLabel(customer)||customerUsername)}</h2><div class="line"><b>Username:</b> ${esc(customerUsername)}</div><div class="line"><b>Company:</b> ${esc(getCompanyName(companyOf(customer)))}</div><div class="line"><b>BOL:</b> ${customer.bolRequired?'Requested':'Not requested'}</div><div class="actions"><button class="btn redbtn" id="profileBolBtn">${customer.bolRequired?'BOL Requested':'Request BOL'}</button><button class="btn blue" onclick="editUserByUsername('${escAttr(customerUsername)}')">Edit</button><button class="btn redbtn" onclick="deleteUserByUsername('${escAttr(customerUsername)}')">Delete</button></div><h3>Last requests</h3><div class="chat">${reqs.slice(0,10).map(r=>`<div class="msg"><b>${esc(requestTitle(r))}</b> <span class="mini">${esc(r.status)} | ${formatDate(r.createdAt)}</span></div>`).join('')||'<div class="line">No requests.</div>'}</div>`;
 $('backCustomersList').onclick=renderCustomerTab;
 $('profileBolBtn').onclick=()=>requestBolForCustomer(customer,lastReq);
 }
@@ -744,13 +799,13 @@ const list=$('requestList');
 let visible=requests.filter(r=>sameCompany(r)).filter(r=>r.status==='NEW'||r.status==='TAKEN');
 if(user.role==='admin')visible=visible.filter(r=>getAssignedCustomers(userKey(user),companyOf(user)).includes(r.customerUsername));
 const search=($('requestSearch')?.value||'').toLowerCase().trim();
-if(search)visible=visible.filter(r=>(r.customerName||'').toLowerCase().includes(search)||(r.customerUsername||'').toLowerCase().includes(search)||(r.type||'').toLowerCase().includes(search)||(r.value||'').toLowerCase().includes(search));
+if(search)visible=visible.filter(r=>requestSearchText(r).includes(search));
 $('count').innerText=visible.length;list.innerHTML='';
 const sorted=[...visible].sort((a,b)=>getDate(b.createdAt)-getDate(a.createdAt));
 if(!selectedId&&sorted[0])selectedId=sorted[0].id;
 if(selectedId&&!sorted.find(r=>r.id===selectedId))selectedId=sorted[0]?.id||null;
 if(!sorted.length)list.innerHTML='<div class="line">No active requests.</div>';
-sorted.forEach(r=>{const div=document.createElement('div');div.className='card '+(r.status==='NEW'?'new':'taken')+(r.id===selectedId?' sel':'');div.innerHTML=`<b>${esc(r.customerName)}</b><br>${esc(r.type)} ${esc(r.value)}<br>Status: ${esc(r.status)}<br>Taken by: ${esc(r.takenByName||'-')}`;div.onclick=()=>{selectedId=r.id;renderAdmin()};list.appendChild(div)});
+sorted.forEach(r=>{const div=document.createElement('div');div.className='card '+(r.status==='NEW'?'new':'taken')+(r.id===selectedId?' sel':'');div.innerHTML=`<b>${esc(r.customerName)}</b><br>${esc(requestTitle(r))}<br>Status: ${esc(r.status)}<br>Taken by: ${esc(r.takenByName||'-')}`;div.onclick=()=>{selectedId=r.id;renderAdmin()};list.appendChild(div)});
 renderDetails();
 }
 function renderSuperAdminHome(){renderDetails()}
@@ -793,7 +848,7 @@ const isTakenByOther=r.status==='TAKEN'&&r.takenByUsername&&r.takenByUsername!==
 const canWork=isSuper&&(r.status==='NEW'||(r.status==='TAKEN'&&r.takenByUsername===user.username));
 const takeDisabled=!isSuper||r.status!=='NEW';
 const doneDisabled=!isSuper||r.status==='DONE'||isTakenByOther;
-$('tabContent').innerHTML=`<h2>${esc(r.type)} ${esc(r.value)}</h2><div class="line"><b>Customer:</b> ${esc(r.customerName)}</div><div class="line"><b>Status:</b> ${esc(r.status)}</div><div class="line"><b>Created:</b> ${formatDate(r.createdAt)}</div><div class="line"><b>Operator:</b> ${esc(r.takenByName||'-')}</div><div class="actions"><button class="btn blue ${takeDisabled?'disabled':''}" id="takeBtn" ${takeDisabled?'disabled':''}>Preuzmi</button><button class="btn green ${doneDisabled?'disabled':''}" id="doneBtn" ${doneDisabled?'disabled':''}>Završeno</button><button class="btn redbtn" id="bolReqBtn">Request BOL</button></div><div class="chat" id="chatBox">${msgs.map((m,i)=>`<div class="msg ${i===msgs.length-1?'lastMsg':''}"><b>${esc(m.sender)}:</b> ${esc(m.text)} ${m.bolImage?`<button class="inlineImageIcon" data-img-index="${getImageIndex(r,m.bolImage)}">🖼️</button>`:''}<span class="mini">(${formatDate(m.createdAt)})</span></div>`).join('')}</div><div style="display:flex;gap:8px"><input class="input" id="chatInput" placeholder="Message" ${!canWork?'disabled':''}><button class="btn blue ${!canWork?'disabled':''}" id="sendMsgBtn" ${!canWork?'disabled':''}>Send</button></div>`;
+$('tabContent').innerHTML=`<h2>${esc(requestTitle(r))}</h2><div class="line"><b>Customer:</b> ${esc(r.customerName)}</div><div class="line"><b>Status:</b> ${esc(r.status)}</div>${r.customerLocalValue&&r.customerLocalValue!==r.portalValue?`<div class="line"><b>Customer local:</b> ${esc(r.customerLocalValue)} ${esc(r.customerTimeZone||'')}</div>`:''}<div class="line"><b>Created:</b> ${formatDate(r.createdAt)}</div><div class="line"><b>Operator:</b> ${esc(r.takenByName||'-')}</div><div class="actions"><button class="btn blue ${takeDisabled?'disabled':''}" id="takeBtn" ${takeDisabled?'disabled':''}>Preuzmi</button><button class="btn green ${doneDisabled?'disabled':''}" id="doneBtn" ${doneDisabled?'disabled':''}>Završeno</button><button class="btn redbtn" id="bolReqBtn">Request BOL</button></div><div class="chat" id="chatBox">${msgs.map((m,i)=>`<div class="msg ${i===msgs.length-1?'lastMsg':''}"><b>${esc(m.sender)}:</b> ${esc(m.text)} ${m.bolImage?`<button class="inlineImageIcon" data-img-index="${getImageIndex(r,m.bolImage)}">🖼️</button>`:''}<span class="mini">(${formatDate(m.createdAt)})</span></div>`).join('')}</div><div style="display:flex;gap:8px"><input class="input" id="chatInput" placeholder="Message" ${!canWork?'disabled':''}><button class="btn blue ${!canWork?'disabled':''}" id="sendMsgBtn" ${!canWork?'disabled':''}>Send</button></div>`;
 document.querySelectorAll('.inlineImageIcon').forEach(btn=>btn.onclick=()=>openImagePreviewByIndex(Number(btn.dataset.imgIndex||0)));
 $('takeBtn').onclick=()=>takeRequest(r.id);$('doneBtn').onclick=()=>doneRequest(r.id);$('bolReqBtn').onclick=()=>requireBol(r);$('sendMsgBtn').onclick=()=>{if(canWork)sendMsg(r.id)};$('chatInput').onkeydown=e=>{if(e.key==='Enter'&&canWork)sendMsg(r.id)};setTimeout(()=>{const c=$('chatBox');if(c)c.scrollTop=c.scrollHeight},50)}
 function renderUserTab(){selectedAssignAdmin=null;const userTabTarget=$('settingsInner')||$('tabContent');userTabTarget.innerHTML=`<h2>${esc(getCompanyName(companyOf(user)))} - Users</h2><input class="input" id="newUsername" placeholder="username"><input class="input" id="newName" placeholder="name / company"><input class="input" id="newPassword" placeholder="password"><select id="newRole"><option value="admin">admin</option><option value="customer">customer</option><option value="super_admin">super_admin</option></select><button class="btn blue" id="addUserBtn">Add user</button><p id="addUserStatus"></p><div class="hr"></div><h2>Manage Users</h2><input class="input" id="manageUserSearch" placeholder="Search user..."><div id="manageUsersList"></div><div class="hr"></div><h2>Assign Customers to Admin</h2><input class="input" id="assignAdminSearch" placeholder="Search admin..."><div id="adminAssignList"></div><input class="input" id="assignCustomerSearch" placeholder="Search customer..."><div id="selectedAdminInfo" class="line">Izaberi admina.</div><div id="customerChecklist"></div><button class="btn blue" id="saveAssignmentsBtn">Save assignments</button><p id="assignmentStatus"></p>`;$('addUserBtn').onclick=addUser;$('manageUserSearch').oninput=renderManageUsers;$('assignAdminSearch').oninput=()=>{selectedAssignAdmin=null;renderAdminAssignList();renderCustomerAssignList()};$('assignCustomerSearch').oninput=renderCustomerAssignList;$('saveAssignmentsBtn').onclick=saveAssignments;renderManageUsers();renderAdminAssignList();renderCustomerAssignList()}
@@ -943,6 +998,7 @@ async function usernameExists(username){const snap=await getDoc(doc(db,'users',u
 
 
 
-<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR MOBILE FIXED DETAILS v30</div>
+
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR CENTRAL TIME PORTAL v31</div>
 </body>
 </html>
