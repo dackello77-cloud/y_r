@@ -738,6 +738,8 @@ async function sendBolEmptyAction(){
       customerName:user.name||user.username,
       username:user.username,
       company:getCompanyName(companyOf(user)),
+      type:'EMPTY',
+      value:'NO BOL',
       time:new Date().toLocaleString()
     };
 
@@ -748,7 +750,7 @@ async function sendBolEmptyAction(){
       customerUsername:user.username,
       customerName:user.name||user.username,
       type:'BOL',
-      value:'EMPTY',
+      value:'NO BOL',
       status:'NEW',
       createdAt:serverTimestamp(),
       takenByName:null,
@@ -761,7 +763,7 @@ async function sendBolEmptyAction(){
       bolEmpty:true,
       messages:[{
         sender:user.name||user.username,
-        text:'BOL is EMPTY.',
+        text:'EMPTY - NO BOL',
         createdAt:Date.now()
       }]
     });
@@ -776,7 +778,7 @@ async function sendBolEmptyAction(){
       doneAt:serverTimestamp(),
       messages:arrayUnion({
         sender:'System',
-        text:'BOL EMPTY action auto closed.',
+        text:'EMPTY - NO BOL action auto closed.',
         createdAt:Date.now()
       })
     }).catch(()=>{}),5000);
@@ -1230,6 +1232,7 @@ async function usernameExists(username){const snap=await getDoc(doc(db,'users',u
 
 
 
-<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR BOL EMPTY v33</div>
+
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR BOL EMPTY TELEGRAM v34</div>
 </body>
 </html>
