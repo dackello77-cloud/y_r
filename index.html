@@ -278,6 +278,22 @@ padding-bottom:12px;
 }
 
 }
+
+.emptyBolBtn{
+  display:flex;
+  background:#334155;
+  color:white;
+}
+.emptyBolBtn.sending{
+  opacity:.45;
+  cursor:not-allowed;
+}
+.bolActionRow{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
 </style>
 </head>
 <body>
@@ -310,6 +326,10 @@ padding-bottom:12px;
 
     <button class="uploadBolBtn sendBolBtn" id="sendBolBtn" type="button">
       SEND
+    </button>
+
+    <button class="uploadBolBtn emptyBolBtn" id="emptyBolBtn" type="button">
+      EMPTY
     </button>
 
   </div>
@@ -592,6 +612,15 @@ function showBolCapturePanel(){
     send.onclick=sendBolAction;
   }
 
+  const empty=$('emptyBolBtn');
+  if(empty){
+    empty.style.display='flex';
+    empty.disabled=false;
+    empty.classList.remove('sending');
+    empty.innerText='EMPTY';
+    empty.onclick=sendBolEmptyAction;
+  }
+
   $('bolPanel').style.display='flex';
 }
 
@@ -675,7 +704,102 @@ function readBol(e){
 
   reader.readAsDataURL(file);
 }
-async function sendBolAction(){if(bolSending)return;try{if(!pendingBol){return}bolSending=true;const send=$('sendBolBtn');if(send){send.disabled=true;send.classList.add('sending')}const payload={action:'bol_photo',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),image:pendingBol,time:new Date().toLocaleString()};await sendTelegram(payload);const ref=await addDoc(collection(db,'requests'),{companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type:'BOL',value:'PHOTO',status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolTelegram:true,messages:[{sender:user.name||user.username,text:'BOL photo sent to Telegram.',createdAt:Date.now()}]});await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user));setTimeout(()=>updateDoc(doc(db,'requests',ref.id),{status:'DONE',doneByName:'System',doneAt:serverTimestamp(),messages:arrayUnion({sender:'System',text:'BOL action auto closed.',createdAt:Date.now()})}).catch(()=>{}),5000);pendingBol=null;setTimeout(()=>refreshCustomer(),700)}catch(err){bolSending=false;const send=$('sendBolBtn');if(send){send.disabled=false;send.classList.remove('sending')}alert('Greška kod slanja BOL-a: '+err.message)}}
+async function sendBolAction(){if(bolSending)return;try{if(!pendingBol){return}bolSending=true;const send=$('sendBolBtn');if(send){send.disabled=true;send.classList.add('sending')}const empty=$('emptyBolBtn');if(empty){empty.disabled=true;empty.classList.add('sending')}const payload={action:'bol_photo',customerName:user.name||user.username,username:user.username,company:getCompanyName(companyOf(user)),image:pendingBol,time:new Date().toLocaleString()};await sendTelegram(payload);const ref=await addDoc(collection(db,'requests'),{companyId:companyOf(user),customerUsername:user.username,customerName:user.name||user.username,type:'BOL',value:'PHOTO',status:'NEW',createdAt:serverTimestamp(),takenByName:null,takenByUsername:null,takenAt:null,doneByName:null,doneAt:null,bolImage:null,bolTelegram:true,messages:[{sender:user.name||user.username,text:'BOL photo sent to Telegram.',createdAt:Date.now()}]});await updateDoc(doc(db,'users',user.username),{bolRequired:false});user.bolRequired=false;localStorage.setItem('user',JSON.stringify(user));setTimeout(()=>updateDoc(doc(db,'requests',ref.id),{status:'DONE',doneByName:'System',doneAt:serverTimestamp(),messages:arrayUnion({sender:'System',text:'BOL action auto closed.',createdAt:Date.now()})}).catch(()=>{}),5000);pendingBol=null;setTimeout(()=>refreshCustomer(),700)}catch(err){bolSending=false;const send=$('sendBolBtn');if(send){send.disabled=false;send.classList.remove('sending')}alert('Greška kod slanja BOL-a: '+err.message)}}
+
+
+async function sendBolEmptyAction(){
+  if(bolSending)return;
+
+  const ok=confirm('Are you sure?');
+  if(!ok){
+    const f=$('bolFile');
+    if(f)f.click();
+    return;
+  }
+
+  try{
+    bolSending=true;
+
+    const empty=$('emptyBolBtn');
+    if(empty){
+      empty.disabled=true;
+      empty.classList.add('sending');
+      empty.innerText='SENDING...';
+    }
+
+    const send=$('sendBolBtn');
+    if(send){
+      send.disabled=true;
+      send.classList.add('sending');
+    }
+
+    const payload={
+      action:'bol_empty',
+      customerName:user.name||user.username,
+      username:user.username,
+      company:getCompanyName(companyOf(user)),
+      time:new Date().toLocaleString()
+    };
+
+    await sendTelegram(payload);
+
+    const ref=await addDoc(collection(db,'requests'),{
+      companyId:companyOf(user),
+      customerUsername:user.username,
+      customerName:user.name||user.username,
+      type:'BOL',
+      value:'EMPTY',
+      status:'NEW',
+      createdAt:serverTimestamp(),
+      takenByName:null,
+      takenByUsername:null,
+      takenAt:null,
+      doneByName:null,
+      doneAt:null,
+      bolImage:null,
+      bolTelegram:true,
+      bolEmpty:true,
+      messages:[{
+        sender:user.name||user.username,
+        text:'BOL is EMPTY.',
+        createdAt:Date.now()
+      }]
+    });
+
+    await updateDoc(doc(db,'users',user.username),{bolRequired:false});
+    user.bolRequired=false;
+    localStorage.setItem('user',JSON.stringify(user));
+
+    setTimeout(()=>updateDoc(doc(db,'requests',ref.id),{
+      status:'DONE',
+      doneByName:'System',
+      doneAt:serverTimestamp(),
+      messages:arrayUnion({
+        sender:'System',
+        text:'BOL EMPTY action auto closed.',
+        createdAt:Date.now()
+      })
+    }).catch(()=>{}),5000);
+
+    pendingBol=null;
+    setTimeout(()=>refreshCustomer(),700);
+
+  }catch(err){
+    bolSending=false;
+    const empty=$('emptyBolBtn');
+    if(empty){
+      empty.disabled=false;
+      empty.classList.remove('sending');
+      empty.innerText='EMPTY';
+    }
+    const send=$('sendBolBtn');
+    if(send){
+      send.disabled=false;
+      send.classList.remove('sending');
+    }
+    alert('Error sending EMPTY BOL: '+err.message);
+  }
+}
 
 function parseHourLabelToDate(label){
   if(!label || label==='NOW') return null;
@@ -1105,6 +1229,7 @@ async function usernameExists(username){const snap=await getDoc(doc(db,'users',u
 
 
 
-<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR NO DOUBLE CLICK REQUEST v32</div>
+
+<div id="versionMarker" style="position:fixed;bottom:4px;right:6px;font-size:10px;color:#334155;z-index:99999">YR BOL EMPTY v33</div>
 </body>
 </html>
