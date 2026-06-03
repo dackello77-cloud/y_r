@@ -858,7 +858,7 @@ async function sendBolEmptyAction(){
       customerName:user.name||user.username,
       username:user.username,
       company:getCompanyName(companyOf(user)),
-      type:'E',
+      type:'EMPTY',
       value:'NO BOL',
       time:new Date().toLocaleString()
     };
@@ -883,7 +883,7 @@ async function sendBolEmptyAction(){
       bolEmpty:true,
       messages:[{
         sender:user.name||user.username,
-        text:'E - NO BOL',
+        text:'EMPTY, NO BOL',
         createdAt:Date.now()
       }]
     });
@@ -898,7 +898,7 @@ async function sendBolEmptyAction(){
       doneAt:serverTimestamp(),
       messages:arrayUnion({
         sender:'System',
-        text:'E - NO BOL action auto closed.',
+        text:'EMPTY, NO BOL action auto closed.',
         createdAt:Date.now()
       })
     }).catch(()=>{}),5000);
@@ -965,7 +965,7 @@ function buildPortalValue(type,value){
 }
 
 function requestTitle(r){
-  if(r?.bolEmpty) return 'E';
+  if(r?.bolEmpty) return 'EMPTY, NO BOL';
   return (r.type||'')+' '+(r.portalValue||r.value||'');
 }
 
