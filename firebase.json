@@ -1,0 +1,19 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "functions",
+      "functions/**",
+      "yr_android_native_v16",
+      "yr_android_native_v16/**",
+      "node_modules",
+      "node_modules/**",
+      "**/.*"
+    ]
+  },
+  "functions": {
+    "source": "functions"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Y&R Communicator",
+  "short_name": "Y&R",
+  "start_url": "index%20(15).html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "yr-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
